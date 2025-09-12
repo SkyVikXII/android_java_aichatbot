@@ -7,6 +7,7 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -14,17 +15,14 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
-import java.util.zip.Inflater;
-
 public class LoginActivity extends AppCompatActivity {
     TextView txt_title;
-    EditText editTextUsername;
-    EditText editTextPassword;
-    EditText editTextPassword_confirm;
+    EditText editTextUsername, editTextPassword, editTextPassword_confirm;
     CheckBox checkBox_save_login;
     Button button_confirm;
     Button button_toggle;
     int MODE=1;
+    FirebaseAuthHelper authHelper = new FirebaseAuthHelper();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,8 +34,9 @@ public class LoginActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+        Test test = new Test();
         ints();
-        btn_login();
+        btn_confirm();
         btn_toggle();
     }
 
@@ -51,15 +50,76 @@ public class LoginActivity extends AppCompatActivity {
         });
     }
 
-    private void btn_login() {
+    private void btn_confirm() {
         button_confirm.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-                startActivity(intent);
+                switch (MODE){
+                    case 1:
+                        loginUser();
+                        break;
+                    case 2:
+                        registerUser();
+                        break;
+                    default:
+                        MODE=1;
+                        break;
+                }
             }
         });
     }
+
+    private void loginUser() {
+        String username = editTextUsername.getText().toString().trim();
+        String password = editTextPassword.getText().toString().trim();
+
+        if (username.isEmpty() || password.isEmpty()) {
+            Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        authHelper.signInUser(username, password, task -> {
+            if (task.isSuccessful()) {
+                Toast.makeText(LoginActivity.this, "Login successful", Toast.LENGTH_SHORT).show();
+                if(checkBox_save_login.isChecked()){
+                    //todo: save login
+                    movetomain();
+                }else{
+                    movetomain();
+                }
+            } else {
+                Toast.makeText(LoginActivity.this, "Login failed: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void registerUser() {
+        String username = editTextUsername.getText().toString().trim();
+        String password = editTextPassword.getText().toString().trim();
+        String confirmPassword = editTextPassword_confirm.getText().toString().trim();
+        if (username.isEmpty() || password.isEmpty()) {
+            Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if (!password.equals(confirmPassword)) {
+            Toast.makeText(this, "Passwords don't match", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if(!authHelper.isValidEmail(username)){
+            Toast.makeText(this, "Please enter a valid email address", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        authHelper.createUser(username, password, task -> {
+            if (task.isSuccessful()) {
+                MODE=1;
+                mode();
+                Toast.makeText(LoginActivity.this, "Registration successful", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(LoginActivity.this, "Registration failed: " +
+                        task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
     private void ints() {
         txt_title = findViewById(R.id.TextView_title);
         editTextUsername = findViewById(R.id.editTextUsername);
@@ -78,19 +138,24 @@ public class LoginActivity extends AppCompatActivity {
                 editTextPassword_confirm.setVisibility(View.GONE);
                 checkBox_save_login.setVisibility(View.VISIBLE);
                 button_confirm.setText("Đăng nhập");
-                button_toggle.setText("an vao de dk tai khoang");
+                button_toggle.setText("dang ki tai khoang");
                 break;
             case 2:
                 txt_title.setText("Đăng ky");
                 editTextPassword_confirm.setVisibility(View.VISIBLE);
                 checkBox_save_login.setVisibility(View.GONE);
                 button_confirm.setText("Đăng ky");
-                button_toggle.setText("da co tk an vao de dang nhap");
+                button_toggle.setText("dang nhap tai khoang");
                 break;
             default:
                 MODE=1;
                 this.mode();
                 break;
         }
+    }
+    private void movetomain(){
+        Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+        startActivity(intent);
+        finish();
     }
 }

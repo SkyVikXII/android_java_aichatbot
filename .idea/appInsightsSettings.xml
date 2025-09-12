@@ -9,7 +9,7 @@
               <option name="connection">
                 <ConnectionSetting>
                   <option name="appId" value="com.nhom4.aichatbot" />
-                  <option name="mobileSdkAppId" value="1:933852198764:android:6cdab959d3eb7ef0ad2549" />
+                  <option name="mobileSdkAppId" value="1:933852198764:android:fd4e69f88c7425c1ad2549" />
                   <option name="projectId" value="bh05firebase-52a75" />
                   <option name="projectNumber" value="933852198764" />
                 </ConnectionSetting>
