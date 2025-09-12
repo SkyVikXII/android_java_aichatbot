@@ -8,10 +8,10 @@
             <InsightsFilterSettings>
               <option name="connection">
                 <ConnectionSetting>
-                  <option name="appId" value="PLACEHOLDER" />
-                  <option name="mobileSdkAppId" value="" />
-                  <option name="projectId" value="" />
-                  <option name="projectNumber" value="" />
+                  <option name="appId" value="com.nhom4.aichatbot" />
+                  <option name="mobileSdkAppId" value="1:933852198764:android:6cdab959d3eb7ef0ad2549" />
+                  <option name="projectId" value="bh05firebase-52a75" />
+                  <option name="projectNumber" value="933852198764" />
                 </ConnectionSetting>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />
