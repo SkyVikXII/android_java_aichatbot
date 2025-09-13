@@ -58,9 +58,7 @@ public class FragmentCharacter extends Fragment implements CharacterAdapter.OnCh
     }
     private void setupFirebase() {
         String currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        firebaseRef = FirebaseDatabase.getInstance().getReference()
-                .child("characters")
-                .child(currentUserId);
+        firebaseRef = FirebaseDatabase.getInstance().getReference().child("characters").child(currentUserId);
         // Sync from Firebase to SQLite
         firebaseRef.addValueEventListener(new ValueEventListener() {
             @Override
@@ -192,8 +190,8 @@ public class FragmentCharacter extends Fragment implements CharacterAdapter.OnCh
         newCharacter.setDateupdate(currentDate);
 
         // Save to SQLite
-        boolean isSynced = isOnline;
-        long result = dbHelper.addCharacter(newCharacter, isSynced);
+        isOnline = isNetworkAvailable();
+        long result = dbHelper.addCharacter(newCharacter, isOnline);
 
         if (result != -1) {
             Toast.makeText(getContext(), "Character saved successfully", Toast.LENGTH_SHORT).show();
@@ -230,9 +228,112 @@ public class FragmentCharacter extends Fragment implements CharacterAdapter.OnCh
     @Override
     public void onEditClick(Character character) {
         // Edit character logic
-        Toast.makeText(getContext(), "Edit: " + character.getName(), Toast.LENGTH_SHORT).show();
+        Character localCharacter = dbHelper.getCharacterById(character.getId());
+        if (localCharacter != null) {
+            showEditCharacterDialog(localCharacter);
+        } else {
+            Toast.makeText(getContext(), "Character not found", Toast.LENGTH_SHORT).show();
+        }
+        //Toast.makeText(getContext(), "Edit: " + character.getName(), Toast.LENGTH_SHORT).show();
     }
+    private void showEditCharacterDialog(final Character character) {
+        // Create dialog
+        final AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        LayoutInflater inflater = requireActivity().getLayoutInflater();
+        View dialogView = inflater.inflate(R.layout.dialog_add_character, null);
+        builder.setView(dialogView);
 
+        final AlertDialog dialog = builder.create();
+        dialog.show();
+
+        // Get references to dialog views
+        final EditText editTextName = dialogView.findViewById(R.id.editTextCharacterName);
+        final EditText editTextDescription = dialogView.findViewById(R.id.editTextCharacterDescription);
+        Button buttonCancel = dialogView.findViewById(R.id.buttonCancel);
+        Button buttonSave = dialogView.findViewById(R.id.buttonSave);
+
+        // Pre-fill the fields with existing data
+        editTextName.setText(character.getName());
+        editTextDescription.setText(character.getDescription());
+
+        // Change dialog title to "Edit Character"
+        dialog.setTitle("Edit Character");
+
+        // Set up button listeners
+        buttonCancel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+            }
+        });
+
+        buttonSave.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String name = editTextName.getText().toString().trim();
+                String description = editTextDescription.getText().toString().trim();
+
+                if (name.isEmpty()) {
+                    Toast.makeText(getContext(), "Please enter character name", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                if (description.isEmpty()) {
+                    Toast.makeText(getContext(), "Please enter character description", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                // Update the character
+                updateCharacter(character.getId(), name, description);
+                dialog.dismiss();
+            }
+        });
+    }
+    private void updateCharacter(String characterId, String name, String description) {
+        // Get the existing character from SQLite
+        Character existingCharacter = dbHelper.getCharacterById(characterId);
+
+        if (existingCharacter != null) {
+            // Update the fields
+            existingCharacter.setName(name);
+            existingCharacter.setDescription(description);
+
+            // Update the date
+            String currentDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
+            existingCharacter.setDateupdate(currentDate);
+
+            // Update in SQLite
+            isOnline = isNetworkAvailable();
+            int result = dbHelper.updateCharacter(existingCharacter, isOnline);
+
+            if (result > 0) {
+                Toast.makeText(getContext(), "Character updated successfully", Toast.LENGTH_SHORT).show();
+
+                // If online, also update in Firebase
+                if (isOnline && firebaseRef != null) {
+                    firebaseRef.child(characterId).setValue(existingCharacter)
+                            .addOnSuccessListener(new com.google.android.gms.tasks.OnSuccessListener<Void>() {
+                                @Override
+                                public void onSuccess(Void aVoid) {
+                                    dbHelper.markAsSynced(characterId);
+                                    Toast.makeText(getContext(), "Synced to cloud", Toast.LENGTH_SHORT).show();
+                                }
+                            })
+                            .addOnFailureListener(new com.google.android.gms.tasks.OnFailureListener() {
+                                @Override
+                                public void onFailure(@NonNull Exception e) {
+                                    Toast.makeText(getContext(), "Update to cloud failed", Toast.LENGTH_SHORT).show();
+                                }
+                            });
+                }
+
+                // Refresh the list from SQLite (fast local load)
+                loadDataFromSqlite();
+            } else {
+                Toast.makeText(getContext(), "Failed to update character", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
     @Override
     public void onDeleteClick(Character character) {
         // Delete from SQLite
