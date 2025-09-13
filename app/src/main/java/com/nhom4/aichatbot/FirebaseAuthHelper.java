@@ -8,6 +8,7 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.nhom4.aichatbot.Models.User;
+import com.nhom4.aichatbot.Models.Character;
 
 public class FirebaseAuthHelper {
     private final String TAG = "FirebaseAuthHelper";
@@ -56,15 +57,34 @@ public class FirebaseAuthHelper {
         return android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches();
     }
 
-    /*/ Save user data (like userdata1, userdata2)
-    public void saveUserDataItem(String userId, UserData userData) {
-        DatabaseReference userDataRef = mDatabase.child("userdata").child(userId);
-        String dataId = userDataRef.push().getKey();
-        if (dataId != null) {
-            userData.setDataId(dataId);
-            userDataRef.child(dataId).setValue(userData);
+    public void saveUserCharacterItem(Character userData) {
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        if (currentUser != null) {
+            String userId = currentUser.getUid();
+            DatabaseReference userDataRef = mDatabase.child("userdata").child(userId);
+            String dataId = userDataRef.push().getKey();
+            if (dataId != null) {
+                userData.setId(dataId);
+                userDataRef.child(dataId).setValue(userData);
+            }
         }
-    }*/
+    }
+    public DatabaseReference getUserDataReference() {
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        if (currentUser != null) {
+            String userId = currentUser.getUid();
+            return mDatabase.child("userdata").child(userId);
+        }
+        return null;
+    }
+
+    public void deleteUserDataItem(String dataId) {
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        if (currentUser != null) {
+            String userId = currentUser.getUid();
+            mDatabase.child("userdata").child(userId).child(dataId).removeValue();
+        }
+    }
 
     // Get user data
     public DatabaseReference getUserDataReference(String userId) {

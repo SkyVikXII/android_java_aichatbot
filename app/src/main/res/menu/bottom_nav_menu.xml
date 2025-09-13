@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
-        android:id="@+id/nav_home"
-        android:title="Home"
-        android:icon="@android:drawable/ic_menu_view"/>
+        android:id="@+id/nav_character"
+        android:title="Character"
+        android:icon="@android:drawable/ic_menu_my_calendar"/>
 
     <item
-        android:id="@+id/nav_profile"
-        android:title="Profile"
-        android:icon="@android:drawable/ic_menu_my_calendar"/>
+        android:id="@+id/nav_chat"
+        android:title="Chat"
+        android:icon="@android:drawable/ic_menu_send"/>
 
     <item
         android:id="@+id/nav_settings"
