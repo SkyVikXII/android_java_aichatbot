@@ -41,17 +41,24 @@ public class CharacterAdapter extends RecyclerView.Adapter<CharacterViewHolder> 
         Character character = characterList.get(position);
         holder.bind(character);
 
-        holder.buttonEdit.setOnClickListener(v -> {
-            if (listener != null) {
-                listener.onEditClick(character);
-            }
-        });
+        if (character.isDefault()) {
+            holder.buttonEdit.setVisibility(View.GONE);
+            holder.buttonDelete.setVisibility(View.GONE);
+        } else {
+            holder.buttonEdit.setVisibility(View.VISIBLE);
+            holder.buttonDelete.setVisibility(View.VISIBLE);
+            holder.buttonEdit.setOnClickListener(v -> {
+                if (listener != null) {
+                    listener.onEditClick(character);
+                }
+            });
 
-        holder.buttonDelete.setOnClickListener(v -> {
-            if (listener != null) {
-                listener.onDeleteClick(character);
-            }
-        });
+            holder.buttonDelete.setOnClickListener(v -> {
+                if (listener != null) {
+                    listener.onDeleteClick(character);
+                }
+            });
+        }
     }
 
     @Override

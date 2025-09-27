@@ -42,7 +42,7 @@ public class FragmentSetting extends Fragment implements EndpointAdapter.OnEndpo
     private EndpointDbHelper endpointDbHelper;
     private ModelDbHelper modelDbHelper;
     private PromptDbHelper promptDbHelper;
-    private DatabaseReference firebaseEndpointsRef, firebaseModelsRef, firebasePromptsRef;
+    private DatabaseReference firebaseEndpointsRef, firebaseModelsRef, firebasePromptsRef, firebaseSystemEndpointsRef;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -56,6 +56,8 @@ public class FragmentSetting extends Fragment implements EndpointAdapter.OnEndpo
         firebaseEndpointsRef = userRef.child("endpoints");
         firebaseModelsRef = userRef.child("models");
         firebasePromptsRef = userRef.child("prompts");
+
+        firebaseSystemEndpointsRef = FirebaseDatabase.getInstance().getReference().child("system").child("endpoint");
     }
 
     @Override
@@ -68,6 +70,33 @@ public class FragmentSetting extends Fragment implements EndpointAdapter.OnEndpo
         super.onViewCreated(view, savedInstanceState);
         setupAllViews(view);
         loadAllDataFromSqlite();
+        syncSystemEndpoints();
+    }
+
+    private void syncSystemEndpoints() {
+        firebaseSystemEndpointsRef.addValueEventListener(new com.google.firebase.database.ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull com.google.firebase.database.DataSnapshot dataSnapshot) {
+                for (com.google.firebase.database.DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                    Endpoint endpoint = snapshot.getValue(Endpoint.class);
+                    if (endpoint != null) {
+                        String systemId = "system_" + snapshot.getKey();
+                        endpoint.setId(systemId);
+                        if (endpointDbHelper.getEndpointById(systemId) == null) {
+                            endpointDbHelper.addEndpoint(endpoint, true);
+                        } else {
+                            endpointDbHelper.updateEndpoint(endpoint, true);
+                        }
+                    }
+                }
+                loadEndpoints();
+            }
+
+            @Override
+            public void onCancelled(@NonNull com.google.firebase.database.DatabaseError databaseError) {
+                Toast.makeText(getContext(), "Failed to load system endpoints.", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     private void setupAllViews(View view) {
@@ -109,13 +138,22 @@ public class FragmentSetting extends Fragment implements EndpointAdapter.OnEndpo
         EditText name = dialogView.findViewById(R.id.editTextEndpointName);
         EditText url = dialogView.findViewById(R.id.editTextEndpointUrl);
         EditText apiKey = dialogView.findViewById(R.id.editTextApiKey);
-        Button cancel = dialogView.findViewById(R.id.buttonCancel);
-        Button save = dialogView.findViewById(R.id.buttonSave);
+        Button cancel = dialogView.findViewById(R.id.buttonCancelEndpoint);
+        Button save = dialogView.findViewById(R.id.buttonSaveEndpoint);
+
+        boolean isSystemEndpoint = endpoint != null && endpoint.getId() != null && endpoint.getId().startsWith("system_");
 
         if (endpoint != null) {
             name.setText(endpoint.getName());
             url.setText(endpoint.getEndpoint_url());
             apiKey.setText(endpoint.getAPI_KEY());
+
+            if (isSystemEndpoint) {
+                name.setEnabled(false);
+                url.setEnabled(false);
+                apiKey.setEnabled(false);
+                save.setVisibility(View.GONE);
+            }
         }
 
         cancel.setOnClickListener(v -> dialog.dismiss());
@@ -129,12 +167,12 @@ public class FragmentSetting extends Fragment implements EndpointAdapter.OnEndpo
                 return;
             }
 
-            if (endpoint == null) { // Add new
+            if (endpoint == null) {
                 Endpoint newEndpoint = new Endpoint(endpointName, endpointUrl, endpointApiKey);
                 newEndpoint.setId(generateId("endpoint"));
                 endpointDbHelper.addEndpoint(newEndpoint, true);
                 firebaseEndpointsRef.child(newEndpoint.getId()).setValue(newEndpoint);
-            } else { // Update existing
+            } else {
                 endpoint.setName(endpointName);
                 endpoint.setEndpoint_url(endpointUrl);
                 endpoint.setAPI_KEY(endpointApiKey);
@@ -148,10 +186,17 @@ public class FragmentSetting extends Fragment implements EndpointAdapter.OnEndpo
     }
 
     @Override
-    public void onEditClick(Endpoint endpoint) { showAddEditEndpointDialog(endpoint); }
+    public void onEditClick(Endpoint endpoint) { 
+        // System endpoints are read-only, but we can allow viewing them.
+        showAddEditEndpointDialog(endpoint); 
+    }
 
     @Override
     public void onDeleteClick(Endpoint endpoint) {
+        if (endpoint.getId() != null && endpoint.getId().startsWith("system_")) {
+            Toast.makeText(getContext(), "System defaults cannot be deleted.", Toast.LENGTH_SHORT).show();
+            return;
+        }
         endpointDbHelper.deleteEndpoint(endpoint.getId());
         firebaseEndpointsRef.child(endpoint.getId()).removeValue();
         loadEndpoints();
@@ -178,6 +223,7 @@ public class FragmentSetting extends Fragment implements EndpointAdapter.OnEndpo
         EditText topP = dialogView.findViewById(R.id.editTextTopP);
         EditText freqPenalty = dialogView.findViewById(R.id.editTextFrequencyPenalty);
         EditText presPenalty = dialogView.findViewById(R.id.editTextPresencePenalty);
+        Button saveButton = dialogView.findViewById(R.id.buttonSaveModel);
 
         if (model != null) {
             name.setText(model.getName());
@@ -188,10 +234,30 @@ public class FragmentSetting extends Fragment implements EndpointAdapter.OnEndpo
             topP.setText(model.getTop_p());
             freqPenalty.setText(model.getFrequency_penalty());
             presPenalty.setText(model.getPresence_penalty());
+
+            if (model.isDefault()) {
+                name.setEnabled(false);
+                description.setEnabled(false);
+                contextLength.setEnabled(false);
+                maxTokens.setEnabled(false);
+                temperature.setEnabled(false);
+                topP.setEnabled(false);
+                freqPenalty.setEnabled(false);
+                presPenalty.setEnabled(false);
+                saveButton.setVisibility(View.GONE);
+            }
+        } else {
+            name.setText("My Model");
+            contextLength.setText("4096");
+            maxTokens.setText("1024");
+            temperature.setText("1.0");
+            topP.setText("1.0");
+            freqPenalty.setText("0.0");
+            presPenalty.setText("0.0");
         }
 
-        dialogView.findViewById(R.id.buttonCancel).setOnClickListener(v -> dialog.dismiss());
-        dialogView.findViewById(R.id.buttonSave).setOnClickListener(v -> {
+        dialogView.findViewById(R.id.buttonCancelModel).setOnClickListener(v -> dialog.dismiss());
+        saveButton.setOnClickListener(v -> {
             String modelName = name.getText().toString().trim();
             if (modelName.isEmpty()) {
                 Toast.makeText(getContext(), "Model name cannot be empty", Toast.LENGTH_SHORT).show();
@@ -201,6 +267,7 @@ public class FragmentSetting extends Fragment implements EndpointAdapter.OnEndpo
             Model modelToSave = (model == null) ? new Model() : model;
             if (model == null) {
                 modelToSave.setId(generateId("model"));
+                modelToSave.setDefault(false);
             }
             modelToSave.setName(modelName);
             modelToSave.setDescription(description.getText().toString().trim());
@@ -211,9 +278,9 @@ public class FragmentSetting extends Fragment implements EndpointAdapter.OnEndpo
             modelToSave.setFrequency_penalty(freqPenalty.getText().toString().trim());
             modelToSave.setPresence_penalty(presPenalty.getText().toString().trim());
 
-            if (model == null) { // Add new
+            if (model == null) {
                 modelDbHelper.addModel(modelToSave, true);
-            } else { // Update existing
+            } else {
                 modelDbHelper.updateModel(modelToSave, true);
             }
             firebaseModelsRef.child(modelToSave.getId()).setValue(modelToSave);
@@ -228,6 +295,10 @@ public class FragmentSetting extends Fragment implements EndpointAdapter.OnEndpo
 
     @Override
     public void onDeleteClick(Model model) {
+        if (model.isDefault()) {
+            Toast.makeText(getContext(), "Default models cannot be deleted.", Toast.LENGTH_SHORT).show();
+            return;
+        }
         modelDbHelper.deleteModel(model.getId());
         firebaseModelsRef.child(model.getId()).removeValue();
         loadModels();
@@ -249,6 +320,7 @@ public class FragmentSetting extends Fragment implements EndpointAdapter.OnEndpo
         EditText name = dialogView.findViewById(R.id.editTextPromptName);
         EditText content = dialogView.findViewById(R.id.editTextPromptContent);
         RadioGroup typeGroup = dialogView.findViewById(R.id.radioGroupPromptType);
+        Button saveButton = dialogView.findViewById(R.id.buttonSavePrompt);
 
         if (prompt != null) {
             name.setText(prompt.getName());
@@ -258,10 +330,19 @@ public class FragmentSetting extends Fragment implements EndpointAdapter.OnEndpo
             } else {
                 typeGroup.check(R.id.radioButtonInjection);
             }
+
+            if (prompt.isDefault()) {
+                name.setEnabled(false);
+                content.setEnabled(false);
+                for (int i = 0; i < typeGroup.getChildCount(); i++) {
+                    typeGroup.getChildAt(i).setEnabled(false);
+                }
+                saveButton.setVisibility(View.GONE);
+            }
         }
 
-        dialogView.findViewById(R.id.buttonCancel).setOnClickListener(v -> dialog.dismiss());
-        dialogView.findViewById(R.id.buttonSave).setOnClickListener(v -> {
+        dialogView.findViewById(R.id.buttonCancelPrompt).setOnClickListener(v -> dialog.dismiss());
+        saveButton.setOnClickListener(v -> {
             String promptName = name.getText().toString().trim();
             if (promptName.isEmpty()) {
                 Toast.makeText(getContext(), "Prompt name cannot be empty", Toast.LENGTH_SHORT).show();
@@ -274,14 +355,16 @@ public class FragmentSetting extends Fragment implements EndpointAdapter.OnEndpo
             Prompt promptToSave = (prompt == null) ? new Prompt() : prompt;
             if (prompt == null) {
                 promptToSave.setId(generateId("prompt"));
+                promptToSave.setDefault(false);
             }
             promptToSave.setName(promptName);
             promptToSave.setContent(content.getText().toString().trim());
             promptToSave.setType(type);
 
-            if (prompt == null) { // Add new
+            if (prompt == null) {
                 promptDbHelper.addPrompt(promptToSave, true);
-            } else { // Update existing
+            }
+            else {
                 promptDbHelper.updatePrompt(promptToSave, true);
             }
             firebasePromptsRef.child(promptToSave.getId()).setValue(promptToSave);
@@ -296,8 +379,34 @@ public class FragmentSetting extends Fragment implements EndpointAdapter.OnEndpo
 
     @Override
     public void onDeleteClick(Prompt prompt) {
+        if (prompt.isDefault()) {
+            Toast.makeText(getContext(), "Default prompts cannot be deleted.", Toast.LENGTH_SHORT).show();
+            return;
+        }
         promptDbHelper.deletePrompt(prompt.getId());
         firebasePromptsRef.child(prompt.getId()).removeValue();
+        loadPrompts();
+    }
+
+    @Override
+    public void onActivateClick(Endpoint endpoint, boolean isActive) {
+        if (isActive) {
+            endpointDbHelper.setEndpointActive(endpoint.getId());
+            loadEndpoints(); // Reload to update all switches
+        }
+    }
+
+    @Override
+    public void onActivateClick(Model model, boolean isActive) {
+        if (isActive) {
+            modelDbHelper.setModelActive(model.getId());
+            loadModels();
+        }
+    }
+
+    @Override
+    public void onActivateClick(Prompt prompt, boolean isActive) {
+        promptDbHelper.setPromptActive(prompt.getId(), isActive);
         loadPrompts();
     }
 

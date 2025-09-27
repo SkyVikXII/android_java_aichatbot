@@ -17,7 +17,7 @@ import com.nhom4.aichatbot.R;
 public class EndpointViewHolder extends RecyclerView.ViewHolder {
     public TextView textViewName, textViewUrl;
     public ImageButton buttonEdit, buttonDelete;
-    Switch switchEndpoint;
+    public androidx.appcompat.widget.SwitchCompat switchEndpoint;
 
     public EndpointViewHolder(@NonNull View itemView) {
         super(itemView);

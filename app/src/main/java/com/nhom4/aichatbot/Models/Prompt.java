@@ -5,6 +5,24 @@ public class Prompt {
     private String name;
     private String content;
     private int type; //type = 1 system; type = 2 end injection
+    private boolean isDefault;
+    private boolean isActive;
+
+    public boolean isDefault() {
+        return isDefault;
+    }
+
+    public void setDefault(boolean aDefault) {
+        isDefault = aDefault;
+    }
+
+    public boolean isActive() {
+        return isActive;
+    }
+
+    public void setActive(boolean active) {
+        isActive = active;
+    }
 
     public String getId() {
         return id;

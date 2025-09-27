@@ -41,15 +41,32 @@ public class EndpointAdapter extends RecyclerView.Adapter<EndpointViewHolder> {
         Endpoint endpoint = endpointList.get(position);
         holder.bind(endpoint);
 
-        holder.buttonEdit.setOnClickListener(v -> {
-            if (listener != null) {
-                listener.onEditClick(endpoint);
-            }
-        });
+        boolean isSystem = endpoint.getId() != null && endpoint.getId().startsWith("system_");
 
-        holder.buttonDelete.setOnClickListener(v -> {
+        holder.switchEndpoint.setOnCheckedChangeListener(null);
+        holder.switchEndpoint.setChecked(endpoint.isActive());
+
+        if (isSystem) {
+            holder.buttonEdit.setVisibility(View.GONE);
+            holder.buttonDelete.setVisibility(View.GONE);
+        } else {
+            holder.buttonEdit.setVisibility(View.VISIBLE);
+            holder.buttonDelete.setVisibility(View.VISIBLE);
+            holder.buttonEdit.setOnClickListener(v -> {
+                if (listener != null) {
+                    listener.onEditClick(endpoint);
+                }
+            });
+            holder.buttonDelete.setOnClickListener(v -> {
+                if (listener != null) {
+                    listener.onDeleteClick(endpoint);
+                }
+            });
+        }
+        
+        holder.switchEndpoint.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (listener != null) {
-                listener.onDeleteClick(endpoint);
+                listener.onActivateClick(endpoint, isChecked);
             }
         });
     }
@@ -62,5 +79,6 @@ public class EndpointAdapter extends RecyclerView.Adapter<EndpointViewHolder> {
     public interface OnEndpointClickListener {
         void onEditClick(Endpoint endpoint);
         void onDeleteClick(Endpoint endpoint);
+        void onActivateClick(Endpoint endpoint, boolean isActive);
     }
 }

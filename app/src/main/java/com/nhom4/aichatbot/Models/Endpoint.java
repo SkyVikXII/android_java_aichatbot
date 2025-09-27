@@ -5,6 +5,7 @@ public class Endpoint {
     private String name;
     private String endpoint_url;
     private String API_KEY;
+    private boolean isActive;
 
     public Endpoint() {
     }
@@ -13,6 +14,14 @@ public class Endpoint {
         this.name = name;
         this.endpoint_url = endpoint_url;
         this.API_KEY = API_KEY;
+    }
+
+    public boolean isActive() {
+        return isActive;
+    }
+
+    public void setActive(boolean active) {
+        isActive = active;
     }
 
     public String getId() {

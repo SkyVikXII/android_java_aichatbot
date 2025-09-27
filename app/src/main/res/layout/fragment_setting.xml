@@ -27,7 +27,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="endpoint"/>
+                android:text="model"/>
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/recyclerView_SettingModel"
@@ -40,7 +40,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="endpoint"/>
+                android:text="system prompt"/>
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/recyclerView_SettingPrompt"

@@ -25,6 +25,13 @@
         android:gravity="end"
         android:orientation="horizontal">
 
+        <androidx.appcompat.widget.SwitchCompat
+            android:id="@+id/switchModel"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Active" />
+
         <ImageButton
             android:id="@+id/buttonModel_edit"
             android:layout_width="wrap_content"

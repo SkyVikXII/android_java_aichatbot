@@ -11,6 +11,7 @@ import com.nhom4.aichatbot.R;
 public class PromptViewHolder extends RecyclerView.ViewHolder {
     public TextView textViewName, textViewContent;
     public ImageButton buttonEdit, buttonDelete;
+    public androidx.appcompat.widget.SwitchCompat switchPrompt;
 
     public PromptViewHolder(@NonNull View itemView) {
         super(itemView);
@@ -18,6 +19,7 @@ public class PromptViewHolder extends RecyclerView.ViewHolder {
         textViewContent = itemView.findViewById(R.id.TextView_prompt_content);
         buttonEdit = itemView.findViewById(R.id.buttonPrompt_edit);
         buttonDelete = itemView.findViewById(R.id.buttonPrompt_delete);
+        switchPrompt = itemView.findViewById(R.id.switchPrompt);
     }
 
     public void bind(Prompt prompt) {

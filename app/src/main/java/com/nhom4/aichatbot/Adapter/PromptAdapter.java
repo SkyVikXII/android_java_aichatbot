@@ -41,15 +41,30 @@ public class PromptAdapter extends RecyclerView.Adapter<PromptViewHolder> {
         Prompt prompt = promptList.get(position);
         holder.bind(prompt);
 
-        holder.buttonEdit.setOnClickListener(v -> {
-            if (listener != null) {
-                listener.onEditClick(prompt);
-            }
-        });
+        holder.switchPrompt.setOnCheckedChangeListener(null);
+        holder.switchPrompt.setChecked(prompt.isActive());
 
-        holder.buttonDelete.setOnClickListener(v -> {
+        if (prompt.isDefault()) {
+            holder.buttonEdit.setVisibility(View.GONE);
+            holder.buttonDelete.setVisibility(View.GONE);
+        } else {
+            holder.buttonEdit.setVisibility(View.VISIBLE);
+            holder.buttonDelete.setVisibility(View.VISIBLE);
+            holder.buttonEdit.setOnClickListener(v -> {
+                if (listener != null) {
+                    listener.onEditClick(prompt);
+                }
+            });
+            holder.buttonDelete.setOnClickListener(v -> {
+                if (listener != null) {
+                    listener.onDeleteClick(prompt);
+                }
+            });
+        }
+
+        holder.switchPrompt.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (listener != null) {
-                listener.onDeleteClick(prompt);
+                listener.onActivateClick(prompt, isChecked);
             }
         });
     }
@@ -62,5 +77,6 @@ public class PromptAdapter extends RecyclerView.Adapter<PromptViewHolder> {
     public interface OnPromptClickListener {
         void onEditClick(Prompt prompt);
         void onDeleteClick(Prompt prompt);
+        void onActivateClick(Prompt prompt, boolean isActive);
     }
 }

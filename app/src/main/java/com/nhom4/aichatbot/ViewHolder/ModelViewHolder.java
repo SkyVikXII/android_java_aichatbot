@@ -11,6 +11,7 @@ import com.nhom4.aichatbot.R;
 public class ModelViewHolder extends RecyclerView.ViewHolder {
     public TextView textViewName, textViewDescription;
     public ImageButton buttonEdit, buttonDelete;
+    public androidx.appcompat.widget.SwitchCompat switchModel;
 
     public ModelViewHolder(@NonNull View itemView) {
         super(itemView);
@@ -18,6 +19,7 @@ public class ModelViewHolder extends RecyclerView.ViewHolder {
         textViewDescription = itemView.findViewById(R.id.TextView_model_description);
         buttonEdit = itemView.findViewById(R.id.buttonModel_edit);
         buttonDelete = itemView.findViewById(R.id.buttonModel_delete);
+        switchModel = itemView.findViewById(R.id.switchModel);
     }
 
     public void bind(Model model) {

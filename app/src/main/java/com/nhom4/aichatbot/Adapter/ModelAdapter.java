@@ -41,15 +41,30 @@ public class ModelAdapter extends RecyclerView.Adapter<ModelViewHolder> {
         Model model = modelList.get(position);
         holder.bind(model);
 
-        holder.buttonEdit.setOnClickListener(v -> {
-            if (listener != null) {
-                listener.onEditClick(model);
-            }
-        });
+        holder.switchModel.setOnCheckedChangeListener(null);
+        holder.switchModel.setChecked(model.isActive());
 
-        holder.buttonDelete.setOnClickListener(v -> {
+        if (model.isDefault()) {
+            holder.buttonEdit.setVisibility(View.GONE);
+            holder.buttonDelete.setVisibility(View.GONE);
+        } else {
+            holder.buttonEdit.setVisibility(View.VISIBLE);
+            holder.buttonDelete.setVisibility(View.VISIBLE);
+            holder.buttonEdit.setOnClickListener(v -> {
+                if (listener != null) {
+                    listener.onEditClick(model);
+                }
+            });
+            holder.buttonDelete.setOnClickListener(v -> {
+                if (listener != null) {
+                    listener.onDeleteClick(model);
+                }
+            });
+        }
+
+        holder.switchModel.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (listener != null) {
-                listener.onDeleteClick(model);
+                listener.onActivateClick(model, isChecked);
             }
         });
     }
@@ -62,5 +77,6 @@ public class ModelAdapter extends RecyclerView.Adapter<ModelViewHolder> {
     public interface OnModelClickListener {
         void onEditClick(Model model);
         void onDeleteClick(Model model);
+        void onActivateClick(Model model, boolean isActive);
     }
 }
