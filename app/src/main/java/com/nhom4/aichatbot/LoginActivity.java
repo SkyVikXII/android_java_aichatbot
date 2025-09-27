@@ -74,7 +74,7 @@ public class LoginActivity extends AppCompatActivity {
         String password = editTextPassword.getText().toString().trim();
 
         if (username.isEmpty() || password.isEmpty()) {
-            Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Vui lòng nhập tất cả các trường", Toast.LENGTH_SHORT).show();
             return;
         }
         authHelper.signInUser(username, password, task -> {
@@ -97,15 +97,15 @@ public class LoginActivity extends AppCompatActivity {
         String password = editTextPassword.getText().toString().trim();
         String confirmPassword = editTextPassword_confirm.getText().toString().trim();
         if (username.isEmpty() || password.isEmpty()) {
-            Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Vui lòng nhập tất cả các trường", Toast.LENGTH_SHORT).show();
             return;
         }
         if (!password.equals(confirmPassword)) {
-            Toast.makeText(this, "Passwords don't match", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "mật khẩu không khớp", Toast.LENGTH_SHORT).show();
             return;
         }
         if(!authHelper.isValidEmail(username)){
-            Toast.makeText(this, "Please enter a valid email address", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "email không hợp lệ", Toast.LENGTH_SHORT).show();
             return;
         }
         authHelper.createUser(username, password, task -> {
@@ -138,14 +138,14 @@ public class LoginActivity extends AppCompatActivity {
                 editTextPassword_confirm.setVisibility(View.GONE);
                 checkBox_save_login.setVisibility(View.VISIBLE);
                 button_confirm.setText("Đăng nhập");
-                button_toggle.setText("dang ki tai khoang");
+                button_toggle.setText("Đăng kí tài khoảng");
                 break;
             case 2:
-                txt_title.setText("Đăng ky");
+                txt_title.setText("Đăng ký");
                 editTextPassword_confirm.setVisibility(View.VISIBLE);
                 checkBox_save_login.setVisibility(View.GONE);
                 button_confirm.setText("Đăng ky");
-                button_toggle.setText("dang nhap tai khoang");
+                button_toggle.setText("Đăng nhập tài khoảng");
                 break;
             default:
                 MODE=1;
