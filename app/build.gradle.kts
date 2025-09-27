@@ -38,6 +38,8 @@ android {
 dependencies {
     implementation("com.google.firebase:firebase-auth:22.3.1")
     implementation("com.google.firebase:firebase-database:20.3.0")
+    implementation("com.google.code.gson:gson:2.13.2")
+    implementation("com.squareup.okhttp3:okhttp:5.1.0")
 
     
     implementation(libs.appcompat)

@@ -42,16 +42,39 @@ public class CharacterDbHelper {
     }
 
     private void populateInitialData() {
-        if (getAllCharacters().isEmpty()) {
-            Character defaultChar = new Character();
-            defaultChar.setId("char_default_0");
-            defaultChar.setName("Default Assistant");
-            defaultChar.setDescription("A helpful and friendly assistant.");
-            String currentDate = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.getDefault()).format(new java.util.Date());
-            defaultChar.setDatecreate(currentDate);
-            defaultChar.setDateupdate(currentDate);
-            defaultChar.setDefault(true);
-            addCharacter(defaultChar, true);
+        List<Character> defaultCharacters = new ArrayList<>();
+
+        // Default Character 1
+        Character defaultChar1 = new Character();
+        defaultChar1.setId("char_default_0");
+        defaultChar1.setName("Default Assistant");
+        defaultChar1.setDescription("A helpful and friendly assistant.");
+        String currentDate = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.getDefault()).format(new java.util.Date());
+        defaultChar1.setDatecreate(currentDate);
+        defaultChar1.setDateupdate(currentDate);
+        defaultChar1.setDefault(true);
+        defaultCharacters.add(defaultChar1);
+
+        // Default Character 2
+        Character defaultChar2 = new Character();
+        defaultChar2.setId("char_default_1");
+        defaultChar2.setName("Roleplay Partner");
+        defaultChar2.setDescription("Your dedicated roleplay companion.");
+        defaultChar2.setDatecreate(currentDate);
+        defaultChar2.setDateupdate(currentDate);
+        defaultChar2.setDefault(true);
+        defaultCharacters.add(defaultChar2);
+
+        for (Character defaultChar : defaultCharacters) {
+            Character existingChar = getCharacterById(defaultChar.getId());
+            if (existingChar == null) {
+                addCharacter(defaultChar, true);
+            } else {
+                // Update existing default character
+                defaultChar.setDatecreate(existingChar.getDatecreate());
+                defaultChar.setDateupdate(existingChar.getDateupdate());
+                updateCharacter(defaultChar, true);
+            }
         }
     }
 

@@ -80,7 +80,7 @@ public class FragmentSetting extends Fragment implements EndpointAdapter.OnEndpo
                 for (com.google.firebase.database.DataSnapshot snapshot : dataSnapshot.getChildren()) {
                     Endpoint endpoint = snapshot.getValue(Endpoint.class);
                     if (endpoint != null) {
-                        String systemId = "system_" + snapshot.getKey();
+                        String systemId = "system_"+snapshot.getKey();
                         endpoint.setId(systemId);
                         if (endpointDbHelper.getEndpointById(systemId) == null) {
                             endpointDbHelper.addEndpoint(endpoint, true);
@@ -247,7 +247,7 @@ public class FragmentSetting extends Fragment implements EndpointAdapter.OnEndpo
                 saveButton.setVisibility(View.GONE);
             }
         } else {
-            name.setText("My Model");
+            name.setText("");
             contextLength.setText("4096");
             maxTokens.setText("1024");
             temperature.setText("1.0");

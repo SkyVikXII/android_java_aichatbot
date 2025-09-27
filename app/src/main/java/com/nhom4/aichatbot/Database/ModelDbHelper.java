@@ -23,6 +23,7 @@ public class ModelDbHelper {
     private static final String KEY_SYNCED = "synced";
     private static final String KEY_IS_DEFAULT = "is_default";
     private static final String KEY_IS_ACTIVE = "is_active";
+    private static final String KEY_API_MODEL_ID = "api_model_id";
 
     private static final String CREATE_TABLE_MODELS = "CREATE TABLE IF NOT EXISTS " + TABLE_MODELS + "(" +
             KEY_ID + " TEXT PRIMARY KEY," +
@@ -36,7 +37,8 @@ public class ModelDbHelper {
             KEY_PRESENCE_PENALTY + " TEXT," +
             KEY_SYNCED + " INTEGER DEFAULT 0," +
             KEY_IS_DEFAULT + " INTEGER DEFAULT 0," +
-            KEY_IS_ACTIVE + " INTEGER DEFAULT 0" + ")";
+            KEY_IS_ACTIVE + " INTEGER DEFAULT 0," +
+            KEY_API_MODEL_ID + " TEXT" + ")";
 
     private DataBase db;
 
@@ -47,26 +49,56 @@ public class ModelDbHelper {
     }
 
     private void populateInitialData() {
-        if (getAllModels().isEmpty()) {
-            Model defaultModel = new Model();
-            defaultModel.setId("model_default_0");
-            defaultModel.setName("Default GPT-4");
-            defaultModel.setDescription("A powerful default model");
-            defaultModel.setContext_length("8192");
-            defaultModel.setMax_tokens("2048");
-            defaultModel.setTemperature("1.0");
-            defaultModel.setTop_p("1.0");
-            defaultModel.setFrequency_penalty("0.0");
-            defaultModel.setPresence_penalty("0.0");
-            defaultModel.setDefault(true);
-            defaultModel.setActive(true);
-            addModel(defaultModel, true);
+        List<Model> defaultModels = new ArrayList<>();
+
+        // Default Model 1
+        Model defaultModel1 = new Model();
+        defaultModel1.setId("model_default_0");
+        defaultModel1.setName("DeepSeek: DeepSeek V3.1 (free)");
+        defaultModel1.setDescription("DeepSeek-V3.1 is a large hybrid reasoning model (671B parameters, 37B active) that supports both thinking and non-thinking modes via prompt templates.");
+        defaultModel1.setContext_length("64000");
+        defaultModel1.setMax_tokens("16000");
+        defaultModel1.setTemperature("1.0");
+        defaultModel1.setTop_p("1.0");
+        defaultModel1.setFrequency_penalty("0.0");
+        defaultModel1.setPresence_penalty("0.0");
+        defaultModel1.setDefault(true);
+        defaultModel1.setActive(true);
+        defaultModel1.setApi_model_id("deepseek/deepseek-chat-v3.1:free");
+        defaultModels.add(defaultModel1);
+
+        // Default Model 2 (Example)
+        Model defaultModel2 = new Model();
+        defaultModel2.setId("model_default_1");
+        defaultModel2.setName("OpenAI: gpt-oss-120b (free)");
+        defaultModel2.setDescription("gpt-oss-120b is an open-weight, 117B-parameter Mixture-of-Experts (MoE) language model from OpenAI designed for high-reasoning, agentic, and general-purpose production use cases.");
+        defaultModel2.setContext_length("32000");
+        defaultModel2.setMax_tokens("8000");
+        defaultModel2.setTemperature("0.7");
+        defaultModel2.setTop_p("0.9");
+        defaultModel2.setFrequency_penalty("0.0");
+        defaultModel2.setPresence_penalty("0.0");
+        defaultModel2.setDefault(true);
+        defaultModel2.setActive(false);
+        defaultModel2.setApi_model_id("openai/gpt-oss-120b:free");
+        defaultModels.add(defaultModel2);
+
+        for (Model defaultModel : defaultModels) {
+            Model existingModel = getModelById(defaultModel.getId());
+            if (existingModel == null) {
+                addModel(defaultModel, true);
+            } else {
+                // Update existing default model
+                updateModel(defaultModel, true);
+            }
         }
     }
 
     public void addModel(Model model, boolean isSynced) {
-        String sql = "INSERT INTO " + TABLE_MODELS + " (id, name, description, context_length, max_tokens, temperature, top_p, frequency_penalty, presence_penalty, synced, is_default, is_active) VALUES ('" +
-                model.getId() + "', '" + model.getName() + "', '" + model.getDescription() + "', '" + model.getContext_length() + "', '" + model.getMax_tokens() + "', '" + model.getTemperature() + "', '" + model.getTop_p() + "', '" + model.getFrequency_penalty() + "', '" + model.getPresence_penalty() + "', " + (isSynced ? 1:0) + ", " + (model.isDefault() ? 1:0) + ", " + (model.isActive() ? 1:0) + ")";
+        String name = model.getName().replace("'", "''");
+        String description = model.getDescription().replace("'", "''");
+        String sql = "INSERT INTO " + TABLE_MODELS + " (id, name, description, context_length, max_tokens, temperature, top_p, frequency_penalty, presence_penalty, synced, is_default, is_active, api_model_id) VALUES ('" +
+                model.getId() + "', '" + name + "', '" + description + "', '" + model.getContext_length() + "', '" + model.getMax_tokens() + "', '" + model.getTemperature() + "', '" + model.getTop_p() + "', '" + model.getFrequency_penalty() + "', '" + model.getPresence_penalty() + "', " + (isSynced ? 1:0) + ", " + (model.isDefault() ? 1:0) + ", " + (model.isActive() ? 1:0) + ", '" + model.getApi_model_id() + "')";
         db.querrydata(sql);
     }
 
@@ -83,6 +115,7 @@ public class ModelDbHelper {
         model.setPresence_penalty(cursor.getString(cursor.getColumnIndexOrThrow(KEY_PRESENCE_PENALTY)));
         model.setDefault(cursor.getInt(cursor.getColumnIndexOrThrow(KEY_IS_DEFAULT)) == 1);
         model.setActive(cursor.getInt(cursor.getColumnIndexOrThrow(KEY_IS_ACTIVE)) == 1);
+        model.setApi_model_id(cursor.getString(cursor.getColumnIndexOrThrow(KEY_API_MODEL_ID)));
         return model;
     }
 
@@ -97,9 +130,11 @@ public class ModelDbHelper {
     }
 
     public void updateModel(Model model, boolean isSynced) {
+        String name = model.getName().replace("'", "''");
+        String description = model.getDescription().replace("'", "''");
         String sql = "UPDATE " + TABLE_MODELS + " SET " +
-                KEY_NAME + " = '" + model.getName() + "', " +
-                KEY_DESCRIPTION + " = '" + model.getDescription() + "', " +
+                KEY_NAME + " = '" + name + "', " +
+                KEY_DESCRIPTION + " = '" + description + "', " +
                 KEY_CONTEXT_LENGTH + " = '" + model.getContext_length() + "', " +
                 KEY_MAX_TOKENS + " = '" + model.getMax_tokens() + "', " +
                 KEY_TEMPERATURE + " = '" + model.getTemperature() + "', " +
@@ -108,7 +143,8 @@ public class ModelDbHelper {
                 KEY_PRESENCE_PENALTY + " = '" + model.getPresence_penalty() + "', " +
                 KEY_SYNCED + " = " + (isSynced ? 1:0) + ", " +
                 KEY_IS_DEFAULT + " = " + (model.isDefault() ? 1:0) + ", " +
-                KEY_IS_ACTIVE + " = " + (model.isActive() ? 1:0) +
+                KEY_IS_ACTIVE + " = " + (model.isActive() ? 1:0) + ", " +
+                KEY_API_MODEL_ID + " = '" + model.getApi_model_id() + "'" +
                 " WHERE " + KEY_ID + " = '" + model.getId() + "'";
         db.querrydata(sql);
     }
@@ -120,5 +156,16 @@ public class ModelDbHelper {
 
     public void deleteModel(String modelId) {
         db.querrydata("DELETE FROM " + TABLE_MODELS + " WHERE " + KEY_ID + " = '" + modelId + "'");
+    }
+
+    public Model getModelById(String id) {
+        Cursor cursor = db.getdata("SELECT * FROM " + TABLE_MODELS + " WHERE " + KEY_ID + " = '" + id + "'");
+        if (cursor.moveToFirst()) {
+            Model model = cursorToModel(cursor);
+            cursor.close();
+            return model;
+        }
+        cursor.close();
+        return null;
     }
 }

@@ -110,6 +110,18 @@
                 android:inputType="numberSigned|numberDecimal" />
         </com.google.android.material.textfield.TextInputLayout>
 
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/editTextApiModelId"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="API Model ID (e.g., openai/gpt-3.5-turbo)" />
+        </com.google.android.material.textfield.TextInputLayout>
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

@@ -12,6 +12,15 @@ public class Model {
     private String presence_penalty;
     private boolean isDefault;
     private boolean isActive;
+    private String api_model_id;
+
+    public String getApi_model_id() {
+        return api_model_id;
+    }
+
+    public void setApi_model_id(String api_model_id) {
+        this.api_model_id = api_model_id;
+    }
 
     public boolean isDefault() {
         return isDefault;
