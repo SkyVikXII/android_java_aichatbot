@@ -39,7 +39,6 @@ public class FragmentCharacter extends Fragment implements CharacterAdapter.OnCh
     private boolean isOnline = false;
 
     public FragmentCharacter() {
-        // Required empty public constructor
     }
 
     @Override
@@ -58,9 +57,7 @@ public class FragmentCharacter extends Fragment implements CharacterAdapter.OnCh
     }
     private void setupFirebase() {
         String currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        firebaseRef = FirebaseDatabase.getInstance().getReference()
-                .child("characters")
-                .child(currentUserId);
+        firebaseRef = FirebaseDatabase.getInstance().getReference().child("users").child(currentUserId).child("characters");
         // Sync from Firebase to SQLite
         firebaseRef.addValueEventListener(new ValueEventListener() {
             @Override
@@ -68,8 +65,11 @@ public class FragmentCharacter extends Fragment implements CharacterAdapter.OnCh
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                     Character character = snapshot.getValue(Character.class);
                     if (character != null) {
-                        // Save to SQLite and mark as synced
-                        dbHelper.addCharacter(character, true);
+                        if (dbHelper.getCharacterById(character.getId()) == null) {
+                            dbHelper.addCharacter(character, true);
+                        } else {
+                            dbHelper.updateCharacter(character, true);
+                        }
                     }
                 }
                 loadDataFromSqlite();
@@ -132,13 +132,14 @@ public class FragmentCharacter extends Fragment implements CharacterAdapter.OnCh
         btnAddCharacter.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                showAddCharacterDialog();
+                showAddEditCharacterDialog(null);
             }
         });
     }
 
-    private void showAddCharacterDialog() {
-        // Create dialog
+    private void showAddEditCharacterDialog(final Character character) {
+        final boolean isEditing = character != null;
+
         final AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
         LayoutInflater inflater = requireActivity().getLayoutInflater();
         View dialogView = inflater.inflate(R.layout.dialog_add_character, null);
@@ -147,80 +148,67 @@ public class FragmentCharacter extends Fragment implements CharacterAdapter.OnCh
         final AlertDialog dialog = builder.create();
         dialog.show();
 
-        // Get references to dialog views
         final EditText editTextName = dialogView.findViewById(R.id.editTextCharacterName);
         final EditText editTextDescription = dialogView.findViewById(R.id.editTextCharacterDescription);
-        Button buttonCancel = dialogView.findViewById(R.id.buttonCancel);
-        Button buttonSave = dialogView.findViewById(R.id.buttonSave);
+        Button buttonCancel = dialogView.findViewById(R.id.buttonCancelCharacter);
+        Button buttonSave = dialogView.findViewById(R.id.buttonSaveCharacter);
 
-        // Set up button listeners
-        buttonCancel.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                dialog.dismiss();
+        if (isEditing) {
+            editTextName.setText(character.getName());
+            editTextDescription.setText(character.getDescription());
+            dialog.setTitle("Edit Character");
+
+            if (character.isDefault()) {
+                editTextName.setEnabled(false);
+                editTextDescription.setEnabled(false);
+                buttonSave.setVisibility(View.GONE);
+                dialog.setTitle("View Character");
             }
-        });
-        buttonSave.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String name = editTextName.getText().toString().trim();
-                String description = editTextDescription.getText().toString().trim();
-                if (name.isEmpty()) {
-                    Toast.makeText(getContext(), "Please enter character name", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-                if (description.isEmpty()) {
-                    Toast.makeText(getContext(), "Please enter character description", Toast.LENGTH_SHORT).show();
-                    return;
-                }
+        } else {
+            dialog.setTitle("Add Character");
+        }
+
+        buttonCancel.setOnClickListener(v -> dialog.dismiss());
+
+        buttonSave.setOnClickListener(v -> {
+            String name = editTextName.getText().toString().trim();
+            String description = editTextDescription.getText().toString().trim();
+
+            if (name.isEmpty() || description.isEmpty()) {
+                Toast.makeText(getContext(), "Name and description cannot be empty", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            if (isEditing) {
+                updateCharacter(character.getId(), name, description);
+            } else {
                 saveCharacter(name, description);
-                dialog.dismiss();
             }
+            dialog.dismiss();
         });
     }
 
     private void saveCharacter(String name, String description) {
-        // Create new character object
         Character newCharacter = new Character();
         newCharacter.setId(generateId());
         newCharacter.setName(name);
         newCharacter.setDescription(description);
+        newCharacter.setDefault(false); // Ensure user-added characters are not default
 
-        // Set current date and time
         String currentDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
         newCharacter.setDatecreate(currentDate);
         newCharacter.setDateupdate(currentDate);
 
-        // Save to SQLite
-        boolean isSynced = isOnline;
-        long result = dbHelper.addCharacter(newCharacter, isSynced);
+        isOnline = isNetworkAvailable();
+        dbHelper.addCharacter(newCharacter, isOnline);
 
-        if (result != -1) {
-            Toast.makeText(getContext(), "Character saved successfully", Toast.LENGTH_SHORT).show();
+        Toast.makeText(getContext(), "Character saved successfully", Toast.LENGTH_SHORT).show();
 
-            // If online, also save to Firebase
-            if (isOnline && firebaseRef != null) {
-                firebaseRef.child(newCharacter.getId()).setValue(newCharacter)
-                        .addOnSuccessListener(new com.google.android.gms.tasks.OnSuccessListener<Void>() {
-                            @Override
-                            public void onSuccess(Void aVoid) {
-                                dbHelper.markAsSynced(newCharacter.getId());
-                                Toast.makeText(getContext(), "Synced to cloud", Toast.LENGTH_SHORT).show();
-                            }
-                        })
-                        .addOnFailureListener(new com.google.android.gms.tasks.OnFailureListener() {
-                            @Override
-                            public void onFailure(@NonNull Exception e) {
-                                Toast.makeText(getContext(), "Save to cloud failed", Toast.LENGTH_SHORT).show();
-                            }
-                        });
-            }
-
-            // Refresh the list
-            loadDataFromSqlite();
-        } else {
-            Toast.makeText(getContext(), "Failed to save character", Toast.LENGTH_SHORT).show();
+        if (isOnline && firebaseRef != null) {
+            firebaseRef.child(newCharacter.getId()).setValue(newCharacter)
+                    .addOnSuccessListener(aVoid -> dbHelper.markAsSynced(newCharacter.getId()));
         }
+        loadDataFromSqlite();
     }
 
     private String generateId() {
@@ -229,30 +217,41 @@ public class FragmentCharacter extends Fragment implements CharacterAdapter.OnCh
 
     @Override
     public void onEditClick(Character character) {
-        // Edit character logic
-        Toast.makeText(getContext(), "Edit: " + character.getName(), Toast.LENGTH_SHORT).show();
+        showAddEditCharacterDialog(character);
     }
 
+    private void updateCharacter(String characterId, String name, String description) {
+        Character existingCharacter = dbHelper.getCharacterById(characterId);
+
+        if (existingCharacter != null) {
+            existingCharacter.setName(name);
+            existingCharacter.setDescription(description);
+            String currentDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
+            existingCharacter.setDateupdate(currentDate);
+
+            isOnline = isNetworkAvailable();
+            dbHelper.updateCharacter(existingCharacter, isOnline);
+
+            Toast.makeText(getContext(), "Character updated successfully", Toast.LENGTH_SHORT).show();
+
+            if (isOnline && firebaseRef != null) {
+                firebaseRef.child(characterId).setValue(existingCharacter)
+                        .addOnSuccessListener(aVoid -> dbHelper.markAsSynced(characterId));
+            }
+            loadDataFromSqlite();
+        }
+    }
     @Override
     public void onDeleteClick(Character character) {
-        // Delete from SQLite
+        if (character.isDefault()) {
+            Toast.makeText(getContext(), "Default characters cannot be deleted.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         dbHelper.deleteCharacter(character.getId());
 
-        // If online, also delete from Firebase
         if (isOnline && firebaseRef != null) {
-            firebaseRef.child(character.getId()).removeValue()
-                    .addOnSuccessListener(new com.google.android.gms.tasks.OnSuccessListener<Void>() {
-                        @Override
-                        public void onSuccess(Void aVoid) {
-                            // Successfully deleted from Firebase
-                        }
-                    })
-                    .addOnFailureListener(new com.google.android.gms.tasks.OnFailureListener() {
-                        @Override
-                        public void onFailure(@NonNull Exception e) {
-                            Toast.makeText(getContext(), "Delete from cloud failed", Toast.LENGTH_SHORT).show();
-                        }
-                    });
+            firebaseRef.child(character.getId()).removeValue();
         }
 
         loadDataFromSqlite();

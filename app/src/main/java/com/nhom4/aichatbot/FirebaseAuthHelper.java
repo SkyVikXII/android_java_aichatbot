@@ -56,38 +56,4 @@ public class FirebaseAuthHelper {
     public boolean isValidEmail(String email) {
         return android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches();
     }
-
-    public void saveUserCharacterItem(Character userData) {
-        FirebaseUser currentUser = mAuth.getCurrentUser();
-        if (currentUser != null) {
-            String userId = currentUser.getUid();
-            DatabaseReference userDataRef = mDatabase.child("userdata").child(userId);
-            String dataId = userDataRef.push().getKey();
-            if (dataId != null) {
-                userData.setId(dataId);
-                userDataRef.child(dataId).setValue(userData);
-            }
-        }
-    }
-    public DatabaseReference getUserDataReference() {
-        FirebaseUser currentUser = mAuth.getCurrentUser();
-        if (currentUser != null) {
-            String userId = currentUser.getUid();
-            return mDatabase.child("userdata").child(userId);
-        }
-        return null;
-    }
-
-    public void deleteUserDataItem(String dataId) {
-        FirebaseUser currentUser = mAuth.getCurrentUser();
-        if (currentUser != null) {
-            String userId = currentUser.getUid();
-            mDatabase.child("userdata").child(userId).child(dataId).removeValue();
-        }
-    }
-
-    // Get user data
-    public DatabaseReference getUserDataReference(String userId) {
-        return mDatabase.child("userdata").child(userId);
-    }
 }

@@ -8,7 +8,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import com.nhom4.aichatbot.Models.Character;
 import com.nhom4.aichatbot.R;
-import com.nhom4.aichatbot.CharacterViewHolder;
+import com.nhom4.aichatbot.ViewHolder.CharacterViewHolder;
 import java.util.List;
 
 public class CharacterAdapter extends RecyclerView.Adapter<CharacterViewHolder> {
@@ -32,7 +32,7 @@ public class CharacterAdapter extends RecyclerView.Adapter<CharacterViewHolder> 
     @Override
     public CharacterViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.fragment_character_item, parent, false);
+                .inflate(R.layout.character_item, parent, false);
         return new CharacterViewHolder(view);
     }
 
@@ -41,17 +41,24 @@ public class CharacterAdapter extends RecyclerView.Adapter<CharacterViewHolder> 
         Character character = characterList.get(position);
         holder.bind(character);
 
-        holder.buttonEdit.setOnClickListener(v -> {
-            if (listener != null) {
-                listener.onEditClick(character);
-            }
-        });
+        if (character.isDefault()) {
+            holder.buttonEdit.setVisibility(View.GONE);
+            holder.buttonDelete.setVisibility(View.GONE);
+        } else {
+            holder.buttonEdit.setVisibility(View.VISIBLE);
+            holder.buttonDelete.setVisibility(View.VISIBLE);
+            holder.buttonEdit.setOnClickListener(v -> {
+                if (listener != null) {
+                    listener.onEditClick(character);
+                }
+            });
 
-        holder.buttonDelete.setOnClickListener(v -> {
-            if (listener != null) {
-                listener.onDeleteClick(character);
-            }
-        });
+            holder.buttonDelete.setOnClickListener(v -> {
+                if (listener != null) {
+                    listener.onDeleteClick(character);
+                }
+            });
+        }
     }
 
     @Override

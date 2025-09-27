@@ -2,11 +2,20 @@ package com.nhom4.aichatbot.Models;
 
 public class Character {
     private static final String TAG = "Character";
-    String datecreate;
-    String dateupdate;
-    String id;
-    String name;
-    String description;
+    private String datecreate;
+    private String dateupdate;
+    private String id;
+    private String name;
+    private String description;
+    private boolean isDefault;
+
+    public boolean isDefault() {
+        return isDefault;
+    }
+
+    public void setDefault(boolean aDefault) {
+        isDefault = aDefault;
+    }
 
     public String getDatecreate() {
         return datecreate;
