@@ -39,7 +39,6 @@ public class FragmentCharacter extends Fragment implements CharacterAdapter.OnCh
     private boolean isOnline = false;
 
     public FragmentCharacter() {
-        // Required empty public constructor
     }
 
     @Override
@@ -58,7 +57,7 @@ public class FragmentCharacter extends Fragment implements CharacterAdapter.OnCh
     }
     private void setupFirebase() {
         String currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        firebaseRef = FirebaseDatabase.getInstance().getReference().child("characters").child(currentUserId);
+        firebaseRef = FirebaseDatabase.getInstance().getReference().child("users").child(currentUserId).child("characters");
         // Sync from Firebase to SQLite
         firebaseRef.addValueEventListener(new ValueEventListener() {
             @Override
@@ -66,8 +65,11 @@ public class FragmentCharacter extends Fragment implements CharacterAdapter.OnCh
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                     Character character = snapshot.getValue(Character.class);
                     if (character != null) {
-                        // Save to SQLite and mark as synced
-                        dbHelper.addCharacter(character, true);
+                        if (dbHelper.getCharacterById(character.getId()) == null) {
+                            dbHelper.addCharacter(character, true);
+                        } else {
+                            dbHelper.updateCharacter(character, true);
+                        }
                     }
                 }
                 loadDataFromSqlite();
@@ -191,7 +193,7 @@ public class FragmentCharacter extends Fragment implements CharacterAdapter.OnCh
 
         // Save to SQLite
         isOnline = isNetworkAvailable();
-        long result = dbHelper.addCharacter(newCharacter, isOnline);
+        int result = dbHelper.addCharacter(newCharacter, isOnline);
 
         if (result != -1) {
             Toast.makeText(getContext(), "Character saved successfully", Toast.LENGTH_SHORT).show();
