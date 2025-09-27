@@ -32,7 +32,7 @@ public class CharacterAdapter extends RecyclerView.Adapter<CharacterViewHolder> 
     @Override
     public CharacterViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.fragment_character_item, parent, false);
+                .inflate(R.layout.character_item, parent, false);
         return new CharacterViewHolder(view);
     }
 
