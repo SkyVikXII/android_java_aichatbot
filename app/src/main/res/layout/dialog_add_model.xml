@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <EditText
+            android:id="@+id/editTextModelName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Model Name" />
+
+        <EditText
+            android:id="@+id/editTextModelDescription"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Description" />
+
+        <EditText
+            android:id="@+id/editTextContextLength"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Context Length" />
+
+        <EditText
+            android:id="@+id/editTextMaxTokens"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Max Tokens" />
+
+        <EditText
+            android:id="@+id/editTextTemperature"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Temperature" />
+
+        <EditText
+            android:id="@+id/editTextTopP"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Top P" />
+
+        <EditText
+            android:id="@+id/editTextFrequencyPenalty"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Frequency Penalty" />
+
+        <EditText
+            android:id="@+id/editTextPresencePenalty"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Presence Penalty" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/buttonCancel"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Cancel" />
+
+            <Button
+                android:id="@+id/buttonSave"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Save" />
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>

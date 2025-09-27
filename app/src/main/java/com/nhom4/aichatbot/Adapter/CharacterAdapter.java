@@ -8,7 +8,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import com.nhom4.aichatbot.Models.Character;
 import com.nhom4.aichatbot.R;
-import com.nhom4.aichatbot.CharacterViewHolder;
+import com.nhom4.aichatbot.ViewHolder.CharacterViewHolder;
 import java.util.List;
 
 public class CharacterAdapter extends RecyclerView.Adapter<CharacterViewHolder> {

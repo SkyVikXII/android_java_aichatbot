@@ -1,66 +1,307 @@
 package com.nhom4.aichatbot.Fragments;
 
+import android.app.AlertDialog;
 import android.os.Bundle;
-
-import androidx.fragment.app.Fragment;
-
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
+import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.nhom4.aichatbot.Adapter.EndpointAdapter;
+import com.nhom4.aichatbot.Adapter.ModelAdapter;
+import com.nhom4.aichatbot.Adapter.PromptAdapter;
+import com.nhom4.aichatbot.Database.EndpointDbHelper;
+import com.nhom4.aichatbot.Database.ModelDbHelper;
+import com.nhom4.aichatbot.Database.PromptDbHelper;
+import com.nhom4.aichatbot.Models.Endpoint;
+import com.nhom4.aichatbot.Models.Model;
+import com.nhom4.aichatbot.Models.Prompt;
 import com.nhom4.aichatbot.R;
 
-/**
- * A simple {@link Fragment} subclass.
- * Use the {@link FragmentSetting#newInstance} factory method to
- * create an instance of this fragment.
- */
-public class FragmentSetting extends Fragment {
+import java.util.List;
 
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
+public class FragmentSetting extends Fragment implements EndpointAdapter.OnEndpointClickListener, ModelAdapter.OnModelClickListener, PromptAdapter.OnPromptClickListener {
 
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
-
-    public FragmentSetting() {
-        // Required empty public constructor
-    }
-
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
-     * @return A new instance of fragment FragmentSetting.
-     */
-    // TODO: Rename and change types and number of parameters
-    public static FragmentSetting newInstance(String param1, String param2) {
-        FragmentSetting fragment = new FragmentSetting();
-        Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
-        fragment.setArguments(args);
-        return fragment;
-    }
+    private RecyclerView recyclerViewEndpoints, recyclerViewModels, recyclerViewPrompts;
+    private EndpointAdapter endpointAdapter;
+    private ModelAdapter modelAdapter;
+    private PromptAdapter promptAdapter;
+    private EndpointDbHelper endpointDbHelper;
+    private ModelDbHelper modelDbHelper;
+    private PromptDbHelper promptDbHelper;
+    private DatabaseReference firebaseEndpointsRef, firebaseModelsRef, firebasePromptsRef;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
-        }
+        endpointDbHelper = new EndpointDbHelper(getContext());
+        modelDbHelper = new ModelDbHelper(getContext());
+        promptDbHelper = new PromptDbHelper(getContext());
+
+        String currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        DatabaseReference userRef = FirebaseDatabase.getInstance().getReference().child("users").child(currentUserId);
+        firebaseEndpointsRef = userRef.child("endpoints");
+        firebaseModelsRef = userRef.child("models");
+        firebasePromptsRef = userRef.child("prompts");
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_setting, container, false);
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        setupAllViews(view);
+        loadAllDataFromSqlite();
+    }
+
+    private void setupAllViews(View view) {
+        // Endpoints
+        recyclerViewEndpoints = view.findViewById(R.id.recyclerView_SettingEndpoint);
+        recyclerViewEndpoints.setLayoutManager(new LinearLayoutManager(getContext()));
+        view.findViewById(R.id.buttonSetting_addEndpoint).setOnClickListener(v -> showAddEditEndpointDialog(null));
+
+        // Models
+        recyclerViewModels = view.findViewById(R.id.recyclerView_SettingModel);
+        recyclerViewModels.setLayoutManager(new LinearLayoutManager(getContext()));
+        view.findViewById(R.id.buttonSetting_addModel).setOnClickListener(v -> showAddEditModelDialog(null));
+
+        // Prompts
+        recyclerViewPrompts = view.findViewById(R.id.recyclerView_SettingPrompt);
+        recyclerViewPrompts.setLayoutManager(new LinearLayoutManager(getContext()));
+        view.findViewById(R.id.buttonSetting_addPrompt).setOnClickListener(v -> showAddEditPromptDialog(null));
+    }
+
+    private void loadAllDataFromSqlite() {
+        loadEndpoints();
+        loadModels();
+        loadPrompts();
+    }
+
+    // Endpoint Management
+    private void loadEndpoints() {
+        List<Endpoint> endpoints = endpointDbHelper.getAllEndpoints();
+        endpointAdapter = new EndpointAdapter(getContext(), endpoints, this);
+        recyclerViewEndpoints.setAdapter(endpointAdapter);
+    }
+
+    private void showAddEditEndpointDialog(final Endpoint endpoint) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_add_endpoint, null);
+        builder.setView(dialogView);
+        AlertDialog dialog = builder.create();
+
+        EditText name = dialogView.findViewById(R.id.editTextEndpointName);
+        EditText url = dialogView.findViewById(R.id.editTextEndpointUrl);
+        EditText apiKey = dialogView.findViewById(R.id.editTextApiKey);
+        Button cancel = dialogView.findViewById(R.id.buttonCancel);
+        Button save = dialogView.findViewById(R.id.buttonSave);
+
+        if (endpoint != null) {
+            name.setText(endpoint.getName());
+            url.setText(endpoint.getEndpoint_url());
+            apiKey.setText(endpoint.getAPI_KEY());
+        }
+
+        cancel.setOnClickListener(v -> dialog.dismiss());
+        save.setOnClickListener(v -> {
+            String endpointName = name.getText().toString().trim();
+            String endpointUrl = url.getText().toString().trim();
+            String endpointApiKey = apiKey.getText().toString().trim();
+
+            if (endpointName.isEmpty() || endpointUrl.isEmpty()) {
+                Toast.makeText(getContext(), "Name and URL cannot be empty", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            if (endpoint == null) { // Add new
+                Endpoint newEndpoint = new Endpoint(endpointName, endpointUrl, endpointApiKey);
+                newEndpoint.setId(generateId("endpoint"));
+                endpointDbHelper.addEndpoint(newEndpoint, true);
+                firebaseEndpointsRef.child(newEndpoint.getId()).setValue(newEndpoint);
+            } else { // Update existing
+                endpoint.setName(endpointName);
+                endpoint.setEndpoint_url(endpointUrl);
+                endpoint.setAPI_KEY(endpointApiKey);
+                endpointDbHelper.updateEndpoint(endpoint, true);
+                firebaseEndpointsRef.child(endpoint.getId()).setValue(endpoint);
+            }
+            loadEndpoints();
+            dialog.dismiss();
+        });
+        dialog.show();
+    }
+
+    @Override
+    public void onEditClick(Endpoint endpoint) { showAddEditEndpointDialog(endpoint); }
+
+    @Override
+    public void onDeleteClick(Endpoint endpoint) {
+        endpointDbHelper.deleteEndpoint(endpoint.getId());
+        firebaseEndpointsRef.child(endpoint.getId()).removeValue();
+        loadEndpoints();
+    }
+
+    // Model Management
+    private void loadModels() {
+        List<Model> models = modelDbHelper.getAllModels();
+        modelAdapter = new ModelAdapter(getContext(), models, this);
+        recyclerViewModels.setAdapter(modelAdapter);
+    }
+
+    private void showAddEditModelDialog(final Model model) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_add_model, null);
+        builder.setView(dialogView);
+        AlertDialog dialog = builder.create();
+
+        EditText name = dialogView.findViewById(R.id.editTextModelName);
+        EditText description = dialogView.findViewById(R.id.editTextModelDescription);
+        EditText contextLength = dialogView.findViewById(R.id.editTextContextLength);
+        EditText maxTokens = dialogView.findViewById(R.id.editTextMaxTokens);
+        EditText temperature = dialogView.findViewById(R.id.editTextTemperature);
+        EditText topP = dialogView.findViewById(R.id.editTextTopP);
+        EditText freqPenalty = dialogView.findViewById(R.id.editTextFrequencyPenalty);
+        EditText presPenalty = dialogView.findViewById(R.id.editTextPresencePenalty);
+
+        if (model != null) {
+            name.setText(model.getName());
+            description.setText(model.getDescription());
+            contextLength.setText(model.getContext_length());
+            maxTokens.setText(model.getMax_tokens());
+            temperature.setText(model.getTemperature());
+            topP.setText(model.getTop_p());
+            freqPenalty.setText(model.getFrequency_penalty());
+            presPenalty.setText(model.getPresence_penalty());
+        }
+
+        dialogView.findViewById(R.id.buttonCancel).setOnClickListener(v -> dialog.dismiss());
+        dialogView.findViewById(R.id.buttonSave).setOnClickListener(v -> {
+            String modelName = name.getText().toString().trim();
+            if (modelName.isEmpty()) {
+                Toast.makeText(getContext(), "Model name cannot be empty", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            Model modelToSave = (model == null) ? new Model() : model;
+            if (model == null) {
+                modelToSave.setId(generateId("model"));
+            }
+            modelToSave.setName(modelName);
+            modelToSave.setDescription(description.getText().toString().trim());
+            modelToSave.setContext_length(contextLength.getText().toString().trim());
+            modelToSave.setMax_tokens(maxTokens.getText().toString().trim());
+            modelToSave.setTemperature(temperature.getText().toString().trim());
+            modelToSave.setTop_p(topP.getText().toString().trim());
+            modelToSave.setFrequency_penalty(freqPenalty.getText().toString().trim());
+            modelToSave.setPresence_penalty(presPenalty.getText().toString().trim());
+
+            if (model == null) { // Add new
+                modelDbHelper.addModel(modelToSave, true);
+            } else { // Update existing
+                modelDbHelper.updateModel(modelToSave, true);
+            }
+            firebaseModelsRef.child(modelToSave.getId()).setValue(modelToSave);
+            loadModels();
+            dialog.dismiss();
+        });
+        dialog.show();
+    }
+
+    @Override
+    public void onEditClick(Model model) { showAddEditModelDialog(model); }
+
+    @Override
+    public void onDeleteClick(Model model) {
+        modelDbHelper.deleteModel(model.getId());
+        firebaseModelsRef.child(model.getId()).removeValue();
+        loadModels();
+    }
+
+    // Prompt Management
+    private void loadPrompts() {
+        List<Prompt> prompts = promptDbHelper.getAllPrompts();
+        promptAdapter = new PromptAdapter(getContext(), prompts, this);
+        recyclerViewPrompts.setAdapter(promptAdapter);
+    }
+
+    private void showAddEditPromptDialog(final Prompt prompt) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_add_prompt, null);
+        builder.setView(dialogView);
+        AlertDialog dialog = builder.create();
+
+        EditText name = dialogView.findViewById(R.id.editTextPromptName);
+        EditText content = dialogView.findViewById(R.id.editTextPromptContent);
+        RadioGroup typeGroup = dialogView.findViewById(R.id.radioGroupPromptType);
+
+        if (prompt != null) {
+            name.setText(prompt.getName());
+            content.setText(prompt.getContent());
+            if (prompt.getType() == 1) {
+                typeGroup.check(R.id.radioButtonSystem);
+            } else {
+                typeGroup.check(R.id.radioButtonInjection);
+            }
+        }
+
+        dialogView.findViewById(R.id.buttonCancel).setOnClickListener(v -> dialog.dismiss());
+        dialogView.findViewById(R.id.buttonSave).setOnClickListener(v -> {
+            String promptName = name.getText().toString().trim();
+            if (promptName.isEmpty()) {
+                Toast.makeText(getContext(), "Prompt name cannot be empty", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            int selectedTypeId = typeGroup.getCheckedRadioButtonId();
+            int type = (selectedTypeId == R.id.radioButtonSystem) ? 1 : 2;
+
+            Prompt promptToSave = (prompt == null) ? new Prompt() : prompt;
+            if (prompt == null) {
+                promptToSave.setId(generateId("prompt"));
+            }
+            promptToSave.setName(promptName);
+            promptToSave.setContent(content.getText().toString().trim());
+            promptToSave.setType(type);
+
+            if (prompt == null) { // Add new
+                promptDbHelper.addPrompt(promptToSave, true);
+            } else { // Update existing
+                promptDbHelper.updatePrompt(promptToSave, true);
+            }
+            firebasePromptsRef.child(promptToSave.getId()).setValue(promptToSave);
+            loadPrompts();
+            dialog.dismiss();
+        });
+        dialog.show();
+    }
+
+    @Override
+    public void onEditClick(Prompt prompt) { showAddEditPromptDialog(prompt); }
+
+    @Override
+    public void onDeleteClick(Prompt prompt) {
+        promptDbHelper.deletePrompt(prompt.getId());
+        firebasePromptsRef.child(prompt.getId()).removeValue();
+        loadPrompts();
+    }
+
+    private String generateId(String prefix) {
+        return prefix + "_" + System.currentTimeMillis();
     }
 }

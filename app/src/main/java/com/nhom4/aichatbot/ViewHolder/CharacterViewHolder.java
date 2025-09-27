@@ -1,4 +1,4 @@
-package com.nhom4.aichatbot;
+package com.nhom4.aichatbot.ViewHolder;
 
 
 import android.view.View;
@@ -7,6 +7,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import com.nhom4.aichatbot.Models.Character;
+import com.nhom4.aichatbot.R;
 
 public class CharacterViewHolder extends RecyclerView.ViewHolder {
     public TextView textViewName, textViewDescription, textViewDateCreate, textViewDateUpdate;
