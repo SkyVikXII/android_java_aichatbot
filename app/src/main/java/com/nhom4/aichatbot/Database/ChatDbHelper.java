@@ -122,7 +122,8 @@ public class ChatDbHelper extends SQLiteOpenHelper {
         String charAiJson = cursor.getString(cursor.getColumnIndexOrThrow(KEY_CHAR_AI));
 
         Type messageListType = new TypeToken<ArrayList<Message>>(){}.getType();
-        chat.setMessages(gson.fromJson(messagesJson, messageListType));
+        List<Message> messages = gson.fromJson(messagesJson, messageListType);
+        chat.setMessages(messages != null ? messages : new ArrayList<>());
         chat.setCharacterUser(gson.fromJson(charUserJson, Character.class));
         chat.setCharacterAI(gson.fromJson(charAiJson, Character.class));
 
