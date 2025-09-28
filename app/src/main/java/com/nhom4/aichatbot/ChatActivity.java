@@ -3,6 +3,7 @@ package com.nhom4.aichatbot;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.Toast;
@@ -80,7 +81,12 @@ public class ChatActivity extends AppCompatActivity implements ApiCall.ApiRespon
         setTitle(currentChat.getName());
         setupRecyclerView();
 
-        buttonSend.setOnClickListener(v -> sendMessage());
+        buttonSend.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                sendMessage();
+            }
+        });
     }
 
     private void initViews() {
@@ -115,7 +121,7 @@ public class ChatActivity extends AppCompatActivity implements ApiCall.ApiRespon
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         if (item.getItemId() == android.R.id.home) {
-            finish(); // Handle back button click
+            finish();
             return true;
         } else if (item.getItemId() == R.id.action_reset_chat) {
             resetChat();
@@ -126,9 +132,9 @@ public class ChatActivity extends AppCompatActivity implements ApiCall.ApiRespon
 
     private void resetChat() {
         if (currentChat != null) {
-            currentChat.setMessages(new ArrayList<>()); // Clear messages
-            chatDbHelper.updateChat(currentChat); // Update database
-            messageAdapter.notifyDataSetChanged(); // Refresh UI
+            currentChat.setMessages(new ArrayList<>());
+            chatDbHelper.updateChat(currentChat);
+            messageAdapter.notifyDataSetChanged();
             Toast.makeText(this, "Chat reset successfully.", Toast.LENGTH_SHORT).show();
         }
     }
