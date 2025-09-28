@@ -83,8 +83,14 @@ public class FragmentSetting extends Fragment implements EndpointAdapter.OnEndpo
                         String systemId = "system_"+snapshot.getKey();
                         endpoint.setId(systemId);
                         if (endpointDbHelper.getEndpointById(systemId) == null) {
+                            endpoint.setActive(true);
                             endpointDbHelper.addEndpoint(endpoint, true);
                         } else {
+                            if(endpointDbHelper.getEndpointById(systemId).isActive()){
+                                endpoint.setActive(true);
+                            }else{
+                                endpoint.setActive(false);
+                            }
                             endpointDbHelper.updateEndpoint(endpoint, true);
                         }
                     }
