@@ -10,6 +10,19 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
+import android.app.AlertDialog;
+import android.content.Context;
+import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.Spinner;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -18,7 +31,14 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.nhom4.aichatbot.Adapter.ChatAdapter;
 import com.nhom4.aichatbot.ChatActivity;
 import com.nhom4.aichatbot.Database.CharacterDbHelper;
@@ -39,6 +59,8 @@ public class FragmentChat extends Fragment implements ChatAdapter.OnChatClickLis
     private CharacterDbHelper characterDbHelper;
     private List<Chat> chatList;
     private List<Character> characterList;
+    private DatabaseReference firebaseRef;
+    private boolean isOnline = false;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -47,6 +69,60 @@ public class FragmentChat extends Fragment implements ChatAdapter.OnChatClickLis
         characterDbHelper = new CharacterDbHelper(getContext());
         chatList = new ArrayList<>();
         characterList = new ArrayList<>();
+        isOnline = isNetworkAvailable();
+        if (isOnline) {
+            setupFirebase();
+        }
+    }
+
+    private boolean isNetworkAvailable() {
+        ConnectivityManager connectivityManager = (ConnectivityManager) getContext().getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+        return activeNetworkInfo != null && activeNetworkInfo.isConnected();
+    }
+
+    private void setupFirebase() {
+        String currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        firebaseRef = FirebaseDatabase.getInstance().getReference().child("users").child(currentUserId).child("chats");
+        firebaseRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                    Chat chat = snapshot.getValue(Chat.class);
+                    if (chat != null) {
+                        // Check if chat already exists in SQLite
+                        boolean chatExists = false;
+                        for (Chat existingChat : chatDbHelper.getAllChats()) {
+                            if (existingChat.getId().equals(chat.getId())) {
+                                chatExists = true;
+                                break;
+                            }
+                        }
+                        if (!chatExists) {
+                            chatDbHelper.addChat(chat);
+                        } else {
+                            chatDbHelper.updateChat(chat);
+                        }
+                    }
+                }
+                loadChatsFromDb();
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                Toast.makeText(getContext(), "Failed to sync chats from Firebase", Toast.LENGTH_SHORT).show();
+            }
+        });
+        syncUnsyncedData();
+    }
+
+    private void syncUnsyncedData() {
+        // No specific unsynced flag for chats, so we'll just push all local chats to Firebase
+        // This might need refinement if a proper sync mechanism is implemented
+        for (Chat chat : chatDbHelper.getAllChats()) {
+            firebaseRef.child(chat.getId()).setValue(chat)
+                    .addOnFailureListener(e -> Toast.makeText(getContext(), "Failed to sync chat " + chat.getName() + " to Firebase", Toast.LENGTH_SHORT).show());
+        }
     }
 
     @Nullable
@@ -62,7 +138,12 @@ public class FragmentChat extends Fragment implements ChatAdapter.OnChatClickLis
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
         FloatingActionButton fab = view.findViewById(R.id.fabNewChat);
-        fab.setOnClickListener(v -> showNewChatDialog());
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showNewChatDialog();
+            }
+        });
     }
 
     @Override
@@ -133,6 +214,13 @@ public class FragmentChat extends Fragment implements ChatAdapter.OnChatClickLis
             newChat.setMessages(new ArrayList<>()); // Start with empty message list
 
             chatDbHelper.addChat(newChat);
+            if (isOnline && firebaseRef != null) {
+                firebaseRef.child(newChat.getId()).setValue(newChat)
+                        .addOnSuccessListener(aVoid -> {
+                            // Optionally, you can add a success message or log here
+                        })
+                        .addOnFailureListener(e -> Toast.makeText(getContext(), "Failed to save chat to Firebase", Toast.LENGTH_SHORT).show());
+            }
             loadChatsFromDb();
             dialog.dismiss();
         });
@@ -145,5 +233,24 @@ public class FragmentChat extends Fragment implements ChatAdapter.OnChatClickLis
         Intent intent = new Intent(getActivity(), ChatActivity.class);
         intent.putExtra("CHAT_ID", chat.getId());
         startActivity(intent);
+    }
+
+    @Override
+    public void onLongChatClick(Chat chat) {
+        new AlertDialog.Builder(getContext())
+                .setTitle("Delete Chat")
+                .setMessage("Are you sure you want to delete this chat?")
+                .setPositiveButton("Delete", (dialog, which) -> {
+                    chatDbHelper.deleteChat(chat);
+                    if (isOnline && firebaseRef != null) {
+                        firebaseRef.child(chat.getId()).removeValue()
+                                .addOnSuccessListener(aVoid -> Toast.makeText(getContext(), "Chat deleted from Firebase", Toast.LENGTH_SHORT).show())
+                                .addOnFailureListener(e -> Toast.makeText(getContext(), "Failed to delete chat from Firebase", Toast.LENGTH_SHORT).show());
+                    }
+                    loadChatsFromDb();
+                    Toast.makeText(getContext(), "Chat deleted", Toast.LENGTH_SHORT).show();
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
     }
 }

@@ -14,6 +14,9 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.nhom4.aichatbot.Adapter.MessageAdapter;
 import com.nhom4.aichatbot.Database.ChatDbHelper;
 import com.nhom4.aichatbot.Database.EndpointDbHelper;
@@ -45,6 +48,7 @@ public class ChatActivity extends AppCompatActivity implements ApiCall.ApiRespon
     private ApiCall apiCall;
 
     private Chat currentChat;
+    private DatabaseReference firebaseChatRef;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -78,6 +82,9 @@ public class ChatActivity extends AppCompatActivity implements ApiCall.ApiRespon
             return;
         }
 
+        String currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        firebaseChatRef = FirebaseDatabase.getInstance().getReference().child("users").child(currentUserId).child("chats").child(currentChat.getId());
+
         setTitle(currentChat.getName());
         setupRecyclerView();
 
@@ -102,6 +109,13 @@ public class ChatActivity extends AppCompatActivity implements ApiCall.ApiRespon
         modelDbHelper = new ModelDbHelper(this);
         promptDbHelper = new PromptDbHelper(this);
         apiCall = new ApiCall();
+    }
+
+    private void updateChatInFirebase() {
+        if (firebaseChatRef != null && currentChat != null) {
+            firebaseChatRef.setValue(currentChat)
+                    .addOnFailureListener(e -> Toast.makeText(ChatActivity.this, "Failed to sync chat to Firebase", Toast.LENGTH_SHORT).show());
+        }
     }
 
     private void setupToolbar() {
@@ -134,6 +148,7 @@ public class ChatActivity extends AppCompatActivity implements ApiCall.ApiRespon
         if (currentChat != null) {
             currentChat.setMessages(new ArrayList<>());
             chatDbHelper.updateChat(currentChat);
+            updateChatInFirebase();
             messageAdapter.notifyDataSetChanged();
             Toast.makeText(this, "Chat reset successfully.", Toast.LENGTH_SHORT).show();
         }
@@ -162,6 +177,7 @@ public class ChatActivity extends AppCompatActivity implements ApiCall.ApiRespon
 
         // 2. Persist the new message
         chatDbHelper.updateChat(currentChat);
+        updateChatInFirebase();
 
         // 3. Get AI response
         getAiResponse(messageText);
@@ -201,6 +217,7 @@ public class ChatActivity extends AppCompatActivity implements ApiCall.ApiRespon
             Message aiMessage = new Message(UUID.randomUUID().toString(), new Date(), currentChat.getCharacterAI().getId(), response);
             currentChat.getMessages().add(aiMessage);
             chatDbHelper.updateChat(currentChat);
+            updateChatInFirebase();
             messageAdapter.notifyItemInserted(currentChat.getMessages().size() - 1);
             recyclerViewMessages.scrollToPosition(currentChat.getMessages().size() - 1);
         });
