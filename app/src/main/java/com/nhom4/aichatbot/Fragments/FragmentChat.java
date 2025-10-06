@@ -47,8 +47,11 @@ import com.nhom4.aichatbot.Models.Character;
 import com.nhom4.aichatbot.Models.Chat;
 import com.nhom4.aichatbot.R;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
 
 public class FragmentChat extends Fragment implements ChatAdapter.OnChatClickListener {
@@ -212,6 +215,9 @@ public class FragmentChat extends Fragment implements ChatAdapter.OnChatClickLis
             newChat.setCharacterUser(userChar); // Copied data
             newChat.setCharacterAI(aiChar);     // Copied data
             newChat.setMessages(new ArrayList<>()); // Start with empty message list
+            String currentDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
+            newChat.setDateCreate(currentDate);
+            newChat.setDateUpdate(currentDate);
 
             chatDbHelper.addChat(newChat);
             if (isOnline && firebaseRef != null) {
@@ -236,7 +242,12 @@ public class FragmentChat extends Fragment implements ChatAdapter.OnChatClickLis
     }
 
     @Override
-    public void onLongChatClick(Chat chat) {
+    public void onEditClick(Chat chat) {
+        showEditChatDialog(chat);
+    }
+
+    @Override
+    public void onDeleteClick(Chat chat) {
         new AlertDialog.Builder(getContext())
                 .setTitle("Delete Chat")
                 .setMessage("Are you sure you want to delete this chat?")
@@ -252,5 +263,50 @@ public class FragmentChat extends Fragment implements ChatAdapter.OnChatClickLis
                 })
                 .setNegativeButton("Cancel", null)
                 .show();
+    }
+
+    private void showEditChatDialog(Chat chat) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_new_chat, null);
+        builder.setView(dialogView);
+
+        EditText etName = dialogView.findViewById(R.id.editTextNewChatName);
+        EditText etDescription = dialogView.findViewById(R.id.editTextNewChatDescription);
+        Spinner spinnerUser = dialogView.findViewById(R.id.spinnerUserCharacter);
+        Spinner spinnerAi = dialogView.findViewById(R.id.spinnerAiCharacter);
+        Button btnCancel = dialogView.findViewById(R.id.buttonCancelNewChat);
+        Button btnCreate = dialogView.findViewById(R.id.buttonCreateNewChat);
+
+        etName.setText(chat.getName());
+        etDescription.setText(chat.getDescription());
+        spinnerUser.setVisibility(View.GONE);
+        spinnerAi.setVisibility(View.GONE);
+        btnCreate.setText("Save");
+
+
+        AlertDialog dialog = builder.create();
+
+        btnCancel.setOnClickListener(v -> dialog.dismiss());
+        btnCreate.setOnClickListener(v -> {
+            String chatName = etName.getText().toString().trim();
+            if (chatName.isEmpty()) {
+                Toast.makeText(getContext(), "Vui lòng nhập tên cuộc trò chuyện.", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            chat.setName(chatName);
+            chat.setDescription(etDescription.getText().toString().trim());
+            String currentDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
+            chat.setDateUpdate(currentDate);
+
+            chatDbHelper.updateChat(chat);
+            if (isOnline && firebaseRef != null) {
+                firebaseRef.child(chat.getId()).setValue(chat);
+            }
+            loadChatsFromDb();
+            dialog.dismiss();
+        });
+
+        dialog.show();
     }
 }

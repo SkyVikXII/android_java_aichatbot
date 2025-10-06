@@ -44,11 +44,16 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatViewHolder> {
             }
         });
 
-        holder.itemView.setOnLongClickListener(v -> {
+        holder.buttonEdit.setOnClickListener(v -> {
             if (listener != null) {
-                listener.onLongChatClick(chat);
+                listener.onEditClick(chat);
             }
-            return true;
+        });
+
+        holder.buttonDelete.setOnClickListener(v -> {
+            if (listener != null) {
+                listener.onDeleteClick(chat);
+            }
         });
     }
 
@@ -59,6 +64,7 @@ public class ChatAdapter extends RecyclerView.Adapter<ChatViewHolder> {
 
     public interface OnChatClickListener {
         void onChatClick(Chat chat);
-        void onLongChatClick(Chat chat);
+        void onEditClick(Chat chat);
+        void onDeleteClick(Chat chat);
     }
 }
