@@ -29,6 +29,17 @@
                 android:layout_height="wrap_content"
                 android:text="Chat Description"
                 android:textAppearance="@style/TextAppearance.AppCompat.Small" />
+            <TextView
+                android:id="@+id/textViewChatDatecreate"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Created: "/>
+
+            <TextView
+                android:id="@+id/textViewChatDateupdate"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Updated: "/>
 
         </LinearLayout>
 
