@@ -29,8 +29,7 @@
                 <TextView
                     android:id="@+id/TextView_prompt_content"
                     android:layout_width="match_parent"
-                    android:layout_height="20dp"
-                    android:lines="1"
+                    android:layout_height="wrap_content"
                     android:text="Prompt Content" />
             </LinearLayout>
             <LinearLayout

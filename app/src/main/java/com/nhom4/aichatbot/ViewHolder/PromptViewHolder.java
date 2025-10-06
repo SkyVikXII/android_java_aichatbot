@@ -24,6 +24,10 @@ public class PromptViewHolder extends RecyclerView.ViewHolder {
 
     public void bind(Prompt prompt) {
         textViewName.setText(prompt.getName());
-        textViewContent.setText(prompt.getContent());
+        String content = prompt.getContent();
+        if (content != null && content.length() > 20) {
+            content = content.substring(0, 20) + "...";
+        }
+        textViewContent.setText(content);
     }
 }

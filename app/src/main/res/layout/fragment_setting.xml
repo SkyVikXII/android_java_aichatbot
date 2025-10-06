@@ -43,9 +43,10 @@
                 android:text="system prompt"/>
 
             <androidx.recyclerview.widget.RecyclerView
+                android:layout_weight="1"
                 android:id="@+id/recyclerView_SettingPrompt"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"/>
+                android:layout_height="0dp"/>
             <Button
                 android:id="@+id/buttonSetting_addPrompt"
                 android:layout_width="match_parent"
