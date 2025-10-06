@@ -110,7 +110,7 @@ public class FragmentChat extends Fragment implements ChatAdapter.OnChatClickLis
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-                Toast.makeText(getContext(), "Failed to sync chats from Firebase", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), "Đồng bộ hóa cuộc trò chuyện từ Firebase thất bại", Toast.LENGTH_SHORT).show();
             }
         });
         syncUnsyncedData();
@@ -121,7 +121,7 @@ public class FragmentChat extends Fragment implements ChatAdapter.OnChatClickLis
         // This might need refinement if a proper sync mechanism is implemented
         for (Chat chat : chatDbHelper.getAllChats()) {
             firebaseRef.child(chat.getId()).setValue(chat)
-                    .addOnFailureListener(e -> Toast.makeText(getContext(), "Failed to sync chat " + chat.getName() + " to Firebase", Toast.LENGTH_SHORT).show());
+                    .addOnFailureListener(e -> Toast.makeText(getContext(), "Đồng bộ hóa cuộc trò chuyện " + chat.getName() + " lên Firebase thất bại", Toast.LENGTH_SHORT).show());
         }
     }
 
@@ -161,7 +161,7 @@ public class FragmentChat extends Fragment implements ChatAdapter.OnChatClickLis
     private void showNewChatDialog() {
         characterList = characterDbHelper.getAllCharacters();
         if (characterList.size() < 2) {
-            Toast.makeText(getContext(), "You need at least two characters to start a roleplay chat.", Toast.LENGTH_LONG).show();
+            Toast.makeText(getContext(), "Bạn cần ít nhất hai nhân vật để bắt đầu cuộc trò chuyện nhập vai.", Toast.LENGTH_LONG).show();
             return;
         }
 
@@ -193,12 +193,12 @@ public class FragmentChat extends Fragment implements ChatAdapter.OnChatClickLis
             int aiCharPos = spinnerAi.getSelectedItemPosition();
 
             if (userCharPos == aiCharPos) {
-                Toast.makeText(getContext(), "Please select two different characters.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), "Vui lòng chọn hai nhân vật khác nhau.", Toast.LENGTH_SHORT).show();
                 return;
             }
             String chatName = etName.getText().toString().trim();
             if (chatName.isEmpty()) {
-                Toast.makeText(getContext(), "Please enter a chat name.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), "Vui lòng nhập tên cuộc trò chuyện.", Toast.LENGTH_SHORT).show();
                 return;
             }
 
@@ -219,7 +219,7 @@ public class FragmentChat extends Fragment implements ChatAdapter.OnChatClickLis
                         .addOnSuccessListener(aVoid -> {
                             // Optionally, you can add a success message or log here
                         })
-                        .addOnFailureListener(e -> Toast.makeText(getContext(), "Failed to save chat to Firebase", Toast.LENGTH_SHORT).show());
+                        .addOnFailureListener(e -> Toast.makeText(getContext(), "Lưu cuộc trò chuyện lên Firebase thất bại", Toast.LENGTH_SHORT).show());
             }
             loadChatsFromDb();
             dialog.dismiss();
@@ -244,11 +244,11 @@ public class FragmentChat extends Fragment implements ChatAdapter.OnChatClickLis
                     chatDbHelper.deleteChat(chat);
                     if (isOnline && firebaseRef != null) {
                         firebaseRef.child(chat.getId()).removeValue()
-                                .addOnSuccessListener(aVoid -> Toast.makeText(getContext(), "Chat deleted from Firebase", Toast.LENGTH_SHORT).show())
-                                .addOnFailureListener(e -> Toast.makeText(getContext(), "Failed to delete chat from Firebase", Toast.LENGTH_SHORT).show());
+                                .addOnSuccessListener(aVoid -> Toast.makeText(getContext(), "Đã xóa cuộc trò chuyện khỏi Firebase", Toast.LENGTH_SHORT).show())
+                                .addOnFailureListener(e -> Toast.makeText(getContext(), "Xóa cuộc trò chuyện khỏi Firebase thất bại", Toast.LENGTH_SHORT).show());
                     }
                     loadChatsFromDb();
-                    Toast.makeText(getContext(), "Chat deleted", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(), "Đã xóa cuộc trò chuyện", Toast.LENGTH_SHORT).show();
                 })
                 .setNegativeButton("Cancel", null)
                 .show();

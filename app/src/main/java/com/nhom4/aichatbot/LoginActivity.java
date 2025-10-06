@@ -114,7 +114,7 @@ public class LoginActivity extends AppCompatActivity {
                 mode();
                 Toast.makeText(LoginActivity.this, "Đăng ký thành công", Toast.LENGTH_SHORT).show();
             } else {
-                Toast.makeText(LoginActivity.this, "Registration failed: " +
+                Toast.makeText(LoginActivity.this, "Đăng ký thất bại: " +
                         task.getException().getMessage(), Toast.LENGTH_SHORT).show();
             }
         });

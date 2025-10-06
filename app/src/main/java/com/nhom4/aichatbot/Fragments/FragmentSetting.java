@@ -100,7 +100,7 @@ public class FragmentSetting extends Fragment implements EndpointAdapter.OnEndpo
 
             @Override
             public void onCancelled(@NonNull com.google.firebase.database.DatabaseError databaseError) {
-                Toast.makeText(getContext(), "Failed to load system endpoints.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), "Không thể tải các điểm cuối của hệ thống.", Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -169,7 +169,7 @@ public class FragmentSetting extends Fragment implements EndpointAdapter.OnEndpo
             String endpointApiKey = apiKey.getText().toString().trim();
 
             if (endpointName.isEmpty() || endpointUrl.isEmpty()) {
-                Toast.makeText(getContext(), "Name and URL cannot be empty", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), "Tên và URL không được để trống", Toast.LENGTH_SHORT).show();
                 return;
             }
 
@@ -200,7 +200,7 @@ public class FragmentSetting extends Fragment implements EndpointAdapter.OnEndpo
     @Override
     public void onDeleteClick(Endpoint endpoint) {
         if (endpoint.getId() != null && endpoint.getId().startsWith("system_")) {
-            Toast.makeText(getContext(), "System defaults cannot be deleted.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), "Không thể xóa các mặc định của hệ thống.", Toast.LENGTH_SHORT).show();
             return;
         }
         endpointDbHelper.deleteEndpoint(endpoint.getId());
@@ -266,7 +266,7 @@ public class FragmentSetting extends Fragment implements EndpointAdapter.OnEndpo
         saveButton.setOnClickListener(v -> {
             String modelName = name.getText().toString().trim();
             if (modelName.isEmpty()) {
-                Toast.makeText(getContext(), "Model name cannot be empty", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), "Tên model không được để trống", Toast.LENGTH_SHORT).show();
                 return;
             }
 
@@ -302,7 +302,7 @@ public class FragmentSetting extends Fragment implements EndpointAdapter.OnEndpo
     @Override
     public void onDeleteClick(Model model) {
         if (model.isDefault()) {
-            Toast.makeText(getContext(), "Default models cannot be deleted.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), "Không thể xóa các model mặc định.", Toast.LENGTH_SHORT).show();
             return;
         }
         modelDbHelper.deleteModel(model.getId());
@@ -351,7 +351,7 @@ public class FragmentSetting extends Fragment implements EndpointAdapter.OnEndpo
         saveButton.setOnClickListener(v -> {
             String promptName = name.getText().toString().trim();
             if (promptName.isEmpty()) {
-                Toast.makeText(getContext(), "Prompt name cannot be empty", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), "Tên prompt không được để trống", Toast.LENGTH_SHORT).show();
                 return;
             }
 
@@ -386,7 +386,7 @@ public class FragmentSetting extends Fragment implements EndpointAdapter.OnEndpo
     @Override
     public void onDeleteClick(Prompt prompt) {
         if (prompt.isDefault()) {
-            Toast.makeText(getContext(), "Default prompts cannot be deleted.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), "Không thể xóa các prompt mặc định.", Toast.LENGTH_SHORT).show();
             return;
         }
         promptDbHelper.deletePrompt(prompt.getId());
