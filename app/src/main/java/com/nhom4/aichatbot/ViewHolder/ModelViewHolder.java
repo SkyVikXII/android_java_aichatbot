@@ -24,6 +24,10 @@ public class ModelViewHolder extends RecyclerView.ViewHolder {
 
     public void bind(Model model) {
         textViewName.setText(model.getName());
-        textViewDescription.setText(model.getDescription());
+        String description = model.getDescription();
+        /*if (description != null && description.length() > 30) {
+            description = description.substring(0, 30) + "...";
+        }*/
+        textViewDescription.setText(description);
     }
 }

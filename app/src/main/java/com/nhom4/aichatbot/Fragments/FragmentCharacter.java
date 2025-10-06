@@ -76,7 +76,7 @@ public class FragmentCharacter extends Fragment implements CharacterAdapter.OnCh
             }
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-                Toast.makeText(getContext(), "Sync failed", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), "Đồng bộ hóa thất bại", Toast.LENGTH_SHORT).show();
             }
         });
         syncUnsyncedData();
@@ -95,7 +95,7 @@ public class FragmentCharacter extends Fragment implements CharacterAdapter.OnCh
                     .addOnFailureListener(new com.google.android.gms.tasks.OnFailureListener() {
                         @Override
                         public void onFailure(@NonNull Exception e) {
-                            Toast.makeText(getContext(), "Sync failed", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getContext(), "Đồng bộ hóa thất bại", Toast.LENGTH_SHORT).show();
                         }
                     });
         }
@@ -175,7 +175,7 @@ public class FragmentCharacter extends Fragment implements CharacterAdapter.OnCh
             String description = editTextDescription.getText().toString().trim();
 
             if (name.isEmpty() || description.isEmpty()) {
-                Toast.makeText(getContext(), "Name and description cannot be empty", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), "Tên và mô tả không được để trống", Toast.LENGTH_SHORT).show();
                 return;
             }
 
@@ -202,7 +202,7 @@ public class FragmentCharacter extends Fragment implements CharacterAdapter.OnCh
         isOnline = isNetworkAvailable();
         dbHelper.addCharacter(newCharacter, isOnline);
 
-        Toast.makeText(getContext(), "Character saved successfully", Toast.LENGTH_SHORT).show();
+        Toast.makeText(getContext(), "Lưu nhân vật thành công", Toast.LENGTH_SHORT).show();
 
         if (isOnline && firebaseRef != null) {
             firebaseRef.child(newCharacter.getId()).setValue(newCharacter)
@@ -232,7 +232,7 @@ public class FragmentCharacter extends Fragment implements CharacterAdapter.OnCh
             isOnline = isNetworkAvailable();
             dbHelper.updateCharacter(existingCharacter, isOnline);
 
-            Toast.makeText(getContext(), "Character updated successfully", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), "Cập nhật nhân vật thành công", Toast.LENGTH_SHORT).show();
 
             if (isOnline && firebaseRef != null) {
                 firebaseRef.child(characterId).setValue(existingCharacter)
@@ -244,7 +244,7 @@ public class FragmentCharacter extends Fragment implements CharacterAdapter.OnCh
     @Override
     public void onDeleteClick(Character character) {
         if (character.isDefault()) {
-            Toast.makeText(getContext(), "Default characters cannot be deleted.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), "Không thể xóa nhân vật mặc định.", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -255,6 +255,6 @@ public class FragmentCharacter extends Fragment implements CharacterAdapter.OnCh
         }
 
         loadDataFromSqlite();
-        Toast.makeText(getContext(), "Character deleted", Toast.LENGTH_SHORT).show();
+        Toast.makeText(getContext(), "Đã xóa nhân vật", Toast.LENGTH_SHORT).show();
     }
 }

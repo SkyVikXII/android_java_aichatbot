@@ -1,23 +1,66 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:padding="16dp"
+    android:layout_margin="8dp"
+    app:cardCornerRadius="4dp"
     android:background="?android:attr/selectableItemBackground">
-
-    <TextView
-        android:id="@+id/textViewChatName"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Chat Name"
-        android:textAppearance="@style/TextAppearance.AppCompat.Large" />
+        android:orientation="horizontal">
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="4dp"
+            android:layout_weight="1">
+            <TextView
+                android:id="@+id/textViewChatName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Chat Name"
+                android:textAppearance="@style/TextAppearance.AppCompat.Large" />
 
-    <TextView
-        android:id="@+id/textViewChatDescription"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Chat Description"
-        android:textAppearance="@style/TextAppearance.AppCompat.Small" />
+            <TextView
+                android:id="@+id/textViewChatDescription"
+                android:layout_width="match_parent"
+                android:layout_height="25dp"
+                android:text="Chat Description"
+                android:textAppearance="@style/TextAppearance.AppCompat.Small" />
+            <TextView
+                android:id="@+id/textViewChatDatecreate"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Created: "/>
 
-</LinearLayout>
+            <TextView
+                android:id="@+id/textViewChatDateupdate"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Updated: "/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:orientation="horizontal">
+
+            <ImageButton
+                android:id="@+id/buttonChatEdit"
+                android:layout_gravity="center_vertical"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@android:drawable/ic_menu_edit" />
+
+            <ImageButton
+                android:id="@+id/buttonChatDelete"
+                android:layout_gravity="center_vertical"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@android:drawable/ic_menu_delete" />
+        </LinearLayout>
+    </LinearLayout>
+</androidx.cardview.widget.CardView>

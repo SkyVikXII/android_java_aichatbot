@@ -12,7 +12,7 @@ import com.nhom4.aichatbot.Models.Message;
 
 import java.io.IOException;
 import java.util.List;
-
+import okhttp3.*;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.MediaType;
@@ -22,9 +22,7 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 
 public class ApiCall {
-
     private static final String TAG = "ApiCall";
-
     private final OkHttpClient client;
     private final Gson gson;
 
@@ -53,7 +51,6 @@ public class ApiCall {
             // Add conversation history
             for (Message msg : conversationHistory) {
                 JsonObject messageObj = new JsonObject();
-                // Use the role stored in the message object, which should be the character ID
                 String role = msg.getRole().equals(userCharacter.getId()) ? "user" : "assistant";
                 messageObj.addProperty("role", role);
                 messageObj.addProperty("content", msg.getContent());

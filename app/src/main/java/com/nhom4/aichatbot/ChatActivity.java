@@ -3,6 +3,7 @@ package com.nhom4.aichatbot;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.Toast;
@@ -13,6 +14,9 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.nhom4.aichatbot.Adapter.MessageAdapter;
 import com.nhom4.aichatbot.Database.ChatDbHelper;
 import com.nhom4.aichatbot.Database.EndpointDbHelper;
@@ -44,6 +48,7 @@ public class ChatActivity extends AppCompatActivity implements ApiCall.ApiRespon
     private ApiCall apiCall;
 
     private Chat currentChat;
+    private DatabaseReference firebaseChatRef;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,7 +57,7 @@ public class ChatActivity extends AppCompatActivity implements ApiCall.ApiRespon
 
         String chatId = getIntent().getStringExtra("CHAT_ID");
         if (chatId == null) {
-            Toast.makeText(this, "Error: Chat ID not found.", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Lỗi: Không tìm thấy ID cuộc trò chuyện.", Toast.LENGTH_LONG).show();
             finish();
             return;
         }
@@ -72,15 +77,23 @@ public class ChatActivity extends AppCompatActivity implements ApiCall.ApiRespon
         }
 
         if (currentChat == null) {
-            Toast.makeText(this, "Error: Chat not found in database.", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Lỗi: Không tìm thấy cuộc trò chuyện trong cơ sở dữ liệu.", Toast.LENGTH_LONG).show();
             finish();
             return;
         }
 
+        String currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        firebaseChatRef = FirebaseDatabase.getInstance().getReference().child("users").child(currentUserId).child("chats").child(currentChat.getId());
+
         setTitle(currentChat.getName());
         setupRecyclerView();
 
-        buttonSend.setOnClickListener(v -> sendMessage());
+        buttonSend.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                sendMessage();
+            }
+        });
     }
 
     private void initViews() {
@@ -96,6 +109,13 @@ public class ChatActivity extends AppCompatActivity implements ApiCall.ApiRespon
         modelDbHelper = new ModelDbHelper(this);
         promptDbHelper = new PromptDbHelper(this);
         apiCall = new ApiCall();
+    }
+
+    private void updateChatInFirebase() {
+        if (firebaseChatRef != null && currentChat != null) {
+            firebaseChatRef.setValue(currentChat)
+                    .addOnFailureListener(e -> Toast.makeText(ChatActivity.this, "Đồng bộ hóa cuộc trò chuyện lên Firebase thất bại", Toast.LENGTH_SHORT).show());
+        }
     }
 
     private void setupToolbar() {
@@ -115,7 +135,7 @@ public class ChatActivity extends AppCompatActivity implements ApiCall.ApiRespon
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         if (item.getItemId() == android.R.id.home) {
-            finish(); // Handle back button click
+            finish();
             return true;
         } else if (item.getItemId() == R.id.action_reset_chat) {
             resetChat();
@@ -126,10 +146,11 @@ public class ChatActivity extends AppCompatActivity implements ApiCall.ApiRespon
 
     private void resetChat() {
         if (currentChat != null) {
-            currentChat.setMessages(new ArrayList<>()); // Clear messages
-            chatDbHelper.updateChat(currentChat); // Update database
-            messageAdapter.notifyDataSetChanged(); // Refresh UI
-            Toast.makeText(this, "Chat reset successfully.", Toast.LENGTH_SHORT).show();
+            currentChat.setMessages(new ArrayList<>());
+            chatDbHelper.updateChat(currentChat);
+            updateChatInFirebase();
+            messageAdapter.notifyDataSetChanged();
+            Toast.makeText(this, "Đặt lại cuộc trò chuyện thành công.", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -156,6 +177,7 @@ public class ChatActivity extends AppCompatActivity implements ApiCall.ApiRespon
 
         // 2. Persist the new message
         chatDbHelper.updateChat(currentChat);
+        updateChatInFirebase();
 
         // 3. Get AI response
         getAiResponse(messageText);
@@ -168,7 +190,7 @@ public class ChatActivity extends AppCompatActivity implements ApiCall.ApiRespon
         List<String> activeSystemPrompts = getActiveSystemPrompts();
 
         if (activeEndpoint == null || activeModel == null) {
-            onFailure("Error: No active Endpoint or Model found in settings.");
+            onFailure("Lỗi: Không tìm thấy Endpoint hoặc Model đang hoạt động trong cài đặt.");
             return;
         }
 
@@ -195,6 +217,7 @@ public class ChatActivity extends AppCompatActivity implements ApiCall.ApiRespon
             Message aiMessage = new Message(UUID.randomUUID().toString(), new Date(), currentChat.getCharacterAI().getId(), response);
             currentChat.getMessages().add(aiMessage);
             chatDbHelper.updateChat(currentChat);
+            updateChatInFirebase();
             messageAdapter.notifyItemInserted(currentChat.getMessages().size() - 1);
             recyclerViewMessages.scrollToPosition(currentChat.getMessages().size() - 1);
         });

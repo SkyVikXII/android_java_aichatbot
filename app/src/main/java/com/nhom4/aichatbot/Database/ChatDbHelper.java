@@ -1,10 +1,7 @@
 package com.nhom4.aichatbot.Database;
 
-import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteOpenHelper;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -16,7 +13,7 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ChatDbHelper extends SQLiteOpenHelper {
+public class ChatDbHelper {
 
     private static final String DATABASE_NAME = "chats.db";
     private static final int DATABASE_VERSION = 1;
@@ -28,56 +25,45 @@ public class ChatDbHelper extends SQLiteOpenHelper {
     private static final String KEY_MESSAGES = "messages";
     private static final String KEY_CHAR_USER = "character_user";
     private static final String KEY_CHAR_AI = "character_ai";
-    private static final String KEY_LAST_UPDATED = "last_updated";
+    private static final String KEY_DATE_CREATE = "date_create";
+    private static final String KEY_DATE_UPDATE = "date_update";
 
-    private Gson gson;
+    private final DataBase db;
+    private final Gson gson;
 
     public ChatDbHelper(Context context) {
-        super(context, DATABASE_NAME, null, DATABASE_VERSION);
-        gson = new Gson();
-    }
-
-    @Override
-    public void onCreate(SQLiteDatabase db) {
-        String CREATE_CHATS_TABLE = "CREATE TABLE " + TABLE_CHATS + "(" +
+        db = new DataBase(context, DATABASE_NAME, null, DATABASE_VERSION);
+        String CREATE_CHATS_TABLE = "CREATE TABLE IF NOT EXISTS " + TABLE_CHATS + "(" +
                 KEY_ID + " TEXT PRIMARY KEY," +
                 KEY_NAME + " TEXT," +
                 KEY_DESCRIPTION + " TEXT," +
                 KEY_MESSAGES + " TEXT," +
                 KEY_CHAR_USER + " TEXT," +
                 KEY_CHAR_AI + " TEXT," +
-                KEY_LAST_UPDATED + " INTEGER" + ")";
-        db.execSQL(CREATE_CHATS_TABLE);
-    }
-
-    @Override
-    public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_CHATS);
-        onCreate(db);
+                KEY_DATE_CREATE + " TEXT," +
+                KEY_DATE_UPDATE + " TEXT" + ")";
+        db.querrydata(CREATE_CHATS_TABLE);
+        gson = new Gson();
     }
 
     public void addChat(Chat chat) {
-        SQLiteDatabase db = this.getWritableDatabase();
-        ContentValues values = new ContentValues();
-        values.put(KEY_ID, chat.getId());
-        values.put(KEY_NAME, chat.getName());
-        values.put(KEY_DESCRIPTION, chat.getDescription());
-        values.put(KEY_LAST_UPDATED, System.currentTimeMillis());
-
-        // Serialize complex objects to JSON
-        values.put(KEY_MESSAGES, gson.toJson(chat.getMessages()));
-        values.put(KEY_CHAR_USER, gson.toJson(chat.getCharacterUser()));
-        values.put(KEY_CHAR_AI, gson.toJson(chat.getCharacterAI()));
-
-        db.insert(TABLE_CHATS, null, values);
-        db.close();
+        String sql = "INSERT INTO " + TABLE_CHATS + " VALUES (" +
+                "'" + chat.getId() + "'," +
+                "'" + chat.getName().replace("'", "''") + "'," +
+                "'" + chat.getDescription().replace("'", "''") + "'," +
+                "'" + gson.toJson(chat.getMessages()).replace("'", "''") + "'," +
+                "'" + gson.toJson(chat.getCharacterUser()).replace("'", "''") + "'," +
+                "'" + gson.toJson(chat.getCharacterAI()).replace("'", "''") + "'," +
+                "'" + chat.getDateCreate() + "'," +
+                "'" + chat.getDateUpdate() + "'" +
+                ")";
+        db.querrydata(sql);
     }
 
     public List<Chat> getAllChats() {
         List<Chat> chatList = new ArrayList<>();
-        String selectQuery = "SELECT * FROM " + TABLE_CHATS + " ORDER BY " + KEY_LAST_UPDATED + " DESC";
-        SQLiteDatabase db = this.getReadableDatabase();
-        Cursor cursor = db.rawQuery(selectQuery, null);
+        String selectQuery = "SELECT * FROM " + TABLE_CHATS + " ORDER BY " + KEY_DATE_UPDATE + " DESC";
+        Cursor cursor = db.getdata(selectQuery);
 
         if (cursor.moveToFirst()) {
             do {
@@ -85,29 +71,24 @@ public class ChatDbHelper extends SQLiteOpenHelper {
             } while (cursor.moveToNext());
         }
         cursor.close();
-        db.close();
         return chatList;
     }
 
     public void updateChat(Chat chat) {
-        SQLiteDatabase db = this.getWritableDatabase();
-        ContentValues values = new ContentValues();
-        values.put(KEY_NAME, chat.getName());
-        values.put(KEY_DESCRIPTION, chat.getDescription());
-        values.put(KEY_LAST_UPDATED, System.currentTimeMillis());
-
-        values.put(KEY_MESSAGES, gson.toJson(chat.getMessages()));
-        values.put(KEY_CHAR_USER, gson.toJson(chat.getCharacterUser()));
-        values.put(KEY_CHAR_AI, gson.toJson(chat.getCharacterAI()));
-
-        db.update(TABLE_CHATS, values, KEY_ID + " = ?", new String[]{chat.getId()});
-        db.close();
+        String sql = "UPDATE " + TABLE_CHATS + " SET " +
+                KEY_NAME + " = '" + chat.getName().replace("'", "''") + "'," +
+                KEY_DESCRIPTION + " = '" + chat.getDescription().replace("'", "''") + "'," +
+                KEY_MESSAGES + " = '" + gson.toJson(chat.getMessages()).replace("'", "''") + "'," +
+                KEY_CHAR_USER + " = '" + gson.toJson(chat.getCharacterUser()).replace("'", "''") + "'," +
+                KEY_CHAR_AI + " = '" + gson.toJson(chat.getCharacterAI()).replace("'", "''") + "'," +
+                KEY_DATE_UPDATE + " = '" + chat.getDateUpdate() + "'" +
+                " WHERE " + KEY_ID + " = '" + chat.getId() + "'";
+        db.querrydata(sql);
     }
 
     public void deleteChat(Chat chat) {
-        SQLiteDatabase db = this.getWritableDatabase();
-        db.delete(TABLE_CHATS, KEY_ID + " = ?", new String[]{chat.getId()});
-        db.close();
+        String sql = "DELETE FROM " + TABLE_CHATS + " WHERE " + KEY_ID + " = '" + chat.getId() + "'";
+        db.querrydata(sql);
     }
 
     private Chat cursorToChat(Cursor cursor) {
@@ -115,6 +96,8 @@ public class ChatDbHelper extends SQLiteOpenHelper {
         chat.setId(cursor.getString(cursor.getColumnIndexOrThrow(KEY_ID)));
         chat.setName(cursor.getString(cursor.getColumnIndexOrThrow(KEY_NAME)));
         chat.setDescription(cursor.getString(cursor.getColumnIndexOrThrow(KEY_DESCRIPTION)));
+        chat.setDateCreate(cursor.getString(cursor.getColumnIndexOrThrow(KEY_DATE_CREATE)));
+        chat.setDateUpdate(cursor.getString(cursor.getColumnIndexOrThrow(KEY_DATE_UPDATE)));
 
         // Deserialize JSON strings back to objects
         String messagesJson = cursor.getString(cursor.getColumnIndexOrThrow(KEY_MESSAGES));
@@ -122,7 +105,8 @@ public class ChatDbHelper extends SQLiteOpenHelper {
         String charAiJson = cursor.getString(cursor.getColumnIndexOrThrow(KEY_CHAR_AI));
 
         Type messageListType = new TypeToken<ArrayList<Message>>(){}.getType();
-        chat.setMessages(gson.fromJson(messagesJson, messageListType));
+        List<Message> messages = gson.fromJson(messagesJson, messageListType);
+        chat.setMessages(messages != null ? messages : new ArrayList<>());
         chat.setCharacterUser(gson.fromJson(charUserJson, Character.class));
         chat.setCharacterAI(gson.fromJson(charAiJson, Character.class));
 

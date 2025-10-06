@@ -5,9 +5,11 @@ import java.util.Date;
 public class Message {
     private String id;
     private Date date;
-    private String role; // Can be a character ID or a generic role like 'user'/'assistant'
+    private String role; //'user'/'assistant'
     private String content;
 
+    public Message() {
+    }
     public Message(String id, Date date, String role, String content) {
         this.id = id;
         this.date = date;

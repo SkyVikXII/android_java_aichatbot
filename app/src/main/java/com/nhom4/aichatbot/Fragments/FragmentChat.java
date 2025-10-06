@@ -10,6 +10,19 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
+import android.app.AlertDialog;
+import android.content.Context;
+import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.Spinner;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -18,7 +31,14 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.nhom4.aichatbot.Adapter.ChatAdapter;
 import com.nhom4.aichatbot.ChatActivity;
 import com.nhom4.aichatbot.Database.CharacterDbHelper;
@@ -27,8 +47,11 @@ import com.nhom4.aichatbot.Models.Character;
 import com.nhom4.aichatbot.Models.Chat;
 import com.nhom4.aichatbot.R;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
 
 public class FragmentChat extends Fragment implements ChatAdapter.OnChatClickListener {
@@ -39,6 +62,8 @@ public class FragmentChat extends Fragment implements ChatAdapter.OnChatClickLis
     private CharacterDbHelper characterDbHelper;
     private List<Chat> chatList;
     private List<Character> characterList;
+    private DatabaseReference firebaseRef;
+    private boolean isOnline = false;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -47,6 +72,60 @@ public class FragmentChat extends Fragment implements ChatAdapter.OnChatClickLis
         characterDbHelper = new CharacterDbHelper(getContext());
         chatList = new ArrayList<>();
         characterList = new ArrayList<>();
+        isOnline = isNetworkAvailable();
+        if (isOnline) {
+            setupFirebase();
+        }
+    }
+
+    private boolean isNetworkAvailable() {
+        ConnectivityManager connectivityManager = (ConnectivityManager) getContext().getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+        return activeNetworkInfo != null && activeNetworkInfo.isConnected();
+    }
+
+    private void setupFirebase() {
+        String currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        firebaseRef = FirebaseDatabase.getInstance().getReference().child("users").child(currentUserId).child("chats");
+        firebaseRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                    Chat chat = snapshot.getValue(Chat.class);
+                    if (chat != null) {
+                        // Check if chat already exists in SQLite
+                        boolean chatExists = false;
+                        for (Chat existingChat : chatDbHelper.getAllChats()) {
+                            if (existingChat.getId().equals(chat.getId())) {
+                                chatExists = true;
+                                break;
+                            }
+                        }
+                        if (!chatExists) {
+                            chatDbHelper.addChat(chat);
+                        } else {
+                            chatDbHelper.updateChat(chat);
+                        }
+                    }
+                }
+                loadChatsFromDb();
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                Toast.makeText(getContext(), "Đồng bộ hóa cuộc trò chuyện từ Firebase thất bại", Toast.LENGTH_SHORT).show();
+            }
+        });
+        syncUnsyncedData();
+    }
+
+    private void syncUnsyncedData() {
+        // No specific unsynced flag for chats, so we'll just push all local chats to Firebase
+        // This might need refinement if a proper sync mechanism is implemented
+        for (Chat chat : chatDbHelper.getAllChats()) {
+            firebaseRef.child(chat.getId()).setValue(chat)
+                    .addOnFailureListener(e -> Toast.makeText(getContext(), "Đồng bộ hóa cuộc trò chuyện " + chat.getName() + " lên Firebase thất bại", Toast.LENGTH_SHORT).show());
+        }
     }
 
     @Nullable
@@ -62,7 +141,12 @@ public class FragmentChat extends Fragment implements ChatAdapter.OnChatClickLis
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
         FloatingActionButton fab = view.findViewById(R.id.fabNewChat);
-        fab.setOnClickListener(v -> showNewChatDialog());
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showNewChatDialog();
+            }
+        });
     }
 
     @Override
@@ -80,7 +164,7 @@ public class FragmentChat extends Fragment implements ChatAdapter.OnChatClickLis
     private void showNewChatDialog() {
         characterList = characterDbHelper.getAllCharacters();
         if (characterList.size() < 2) {
-            Toast.makeText(getContext(), "You need at least two characters to start a roleplay chat.", Toast.LENGTH_LONG).show();
+            Toast.makeText(getContext(), "Bạn cần ít nhất hai nhân vật để bắt đầu cuộc trò chuyện nhập vai.", Toast.LENGTH_LONG).show();
             return;
         }
 
@@ -112,12 +196,12 @@ public class FragmentChat extends Fragment implements ChatAdapter.OnChatClickLis
             int aiCharPos = spinnerAi.getSelectedItemPosition();
 
             if (userCharPos == aiCharPos) {
-                Toast.makeText(getContext(), "Please select two different characters.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), "Vui lòng chọn hai nhân vật khác nhau.", Toast.LENGTH_SHORT).show();
                 return;
             }
             String chatName = etName.getText().toString().trim();
             if (chatName.isEmpty()) {
-                Toast.makeText(getContext(), "Please enter a chat name.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), "Vui lòng nhập tên cuộc trò chuyện.", Toast.LENGTH_SHORT).show();
                 return;
             }
 
@@ -131,8 +215,18 @@ public class FragmentChat extends Fragment implements ChatAdapter.OnChatClickLis
             newChat.setCharacterUser(userChar); // Copied data
             newChat.setCharacterAI(aiChar);     // Copied data
             newChat.setMessages(new ArrayList<>()); // Start with empty message list
+            String currentDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
+            newChat.setDateCreate(currentDate);
+            newChat.setDateUpdate(currentDate);
 
             chatDbHelper.addChat(newChat);
+            if (isOnline && firebaseRef != null) {
+                firebaseRef.child(newChat.getId()).setValue(newChat)
+                        .addOnSuccessListener(aVoid -> {
+                            // Optionally, you can add a success message or log here
+                        })
+                        .addOnFailureListener(e -> Toast.makeText(getContext(), "Lưu cuộc trò chuyện lên Firebase thất bại", Toast.LENGTH_SHORT).show());
+            }
             loadChatsFromDb();
             dialog.dismiss();
         });
@@ -145,5 +239,74 @@ public class FragmentChat extends Fragment implements ChatAdapter.OnChatClickLis
         Intent intent = new Intent(getActivity(), ChatActivity.class);
         intent.putExtra("CHAT_ID", chat.getId());
         startActivity(intent);
+    }
+
+    @Override
+    public void onEditClick(Chat chat) {
+        showEditChatDialog(chat);
+    }
+
+    @Override
+    public void onDeleteClick(Chat chat) {
+        new AlertDialog.Builder(getContext())
+                .setTitle("Delete Chat")
+                .setMessage("Are you sure you want to delete this chat?")
+                .setPositiveButton("Delete", (dialog, which) -> {
+                    chatDbHelper.deleteChat(chat);
+                    if (isOnline && firebaseRef != null) {
+                        firebaseRef.child(chat.getId()).removeValue()
+                                .addOnSuccessListener(aVoid -> Toast.makeText(getContext(), "Đã xóa cuộc trò chuyện khỏi Firebase", Toast.LENGTH_SHORT).show())
+                                .addOnFailureListener(e -> Toast.makeText(getContext(), "Xóa cuộc trò chuyện khỏi Firebase thất bại", Toast.LENGTH_SHORT).show());
+                    }
+                    loadChatsFromDb();
+                    Toast.makeText(getContext(), "Đã xóa cuộc trò chuyện", Toast.LENGTH_SHORT).show();
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    private void showEditChatDialog(Chat chat) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_new_chat, null);
+        builder.setView(dialogView);
+
+        EditText etName = dialogView.findViewById(R.id.editTextNewChatName);
+        EditText etDescription = dialogView.findViewById(R.id.editTextNewChatDescription);
+        Spinner spinnerUser = dialogView.findViewById(R.id.spinnerUserCharacter);
+        Spinner spinnerAi = dialogView.findViewById(R.id.spinnerAiCharacter);
+        Button btnCancel = dialogView.findViewById(R.id.buttonCancelNewChat);
+        Button btnCreate = dialogView.findViewById(R.id.buttonCreateNewChat);
+
+        etName.setText(chat.getName());
+        etDescription.setText(chat.getDescription());
+        spinnerUser.setVisibility(View.GONE);
+        spinnerAi.setVisibility(View.GONE);
+        btnCreate.setText("Save");
+
+
+        AlertDialog dialog = builder.create();
+
+        btnCancel.setOnClickListener(v -> dialog.dismiss());
+        btnCreate.setOnClickListener(v -> {
+            String chatName = etName.getText().toString().trim();
+            if (chatName.isEmpty()) {
+                Toast.makeText(getContext(), "Vui lòng nhập tên cuộc trò chuyện.", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            chat.setName(chatName);
+            chat.setDescription(etDescription.getText().toString().trim());
+            String currentDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
+            chat.setDateUpdate(currentDate);
+
+            chatDbHelper.updateChat(chat);
+            if (isOnline && firebaseRef != null) {
+                firebaseRef.child(chat.getId()).setValue(chat);
+            }
+            loadChatsFromDb();
+            dialog.dismiss();
+        });
+
+        dialog.show();
     }
 }

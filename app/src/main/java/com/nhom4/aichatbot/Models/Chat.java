@@ -9,6 +9,24 @@ public class Chat {
     private List<Message> messages;
     private Character characterUser; // User's roleplay character
     private Character characterAI;   // AI's roleplay character
+    private String dateCreate;
+    private String dateUpdate;
+
+    public String getDateCreate() {
+        return dateCreate;
+    }
+
+    public void setDateCreate(String dateCreate) {
+        this.dateCreate = dateCreate;
+    }
+
+    public String getDateUpdate() {
+        return dateUpdate;
+    }
+
+    public void setDateUpdate(String dateUpdate) {
+        this.dateUpdate = dateUpdate;
+    }
 
     public String getId() {
         return id;
