@@ -79,7 +79,7 @@ public class LoginActivity extends AppCompatActivity {
         }
         authHelper.signInUser(username, password, task -> {
             if (task.isSuccessful()) {
-                Toast.makeText(LoginActivity.this, "Login successful", Toast.LENGTH_SHORT).show();
+                Toast.makeText(LoginActivity.this, "Đăng nhập thành công", Toast.LENGTH_SHORT).show();
                 if(checkBox_save_login.isChecked()){
                     //todo: save login
                     movetomain();
@@ -87,7 +87,7 @@ public class LoginActivity extends AppCompatActivity {
                     movetomain();
                 }
             } else {
-                Toast.makeText(LoginActivity.this, "Login failed: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(LoginActivity.this, "Đăng nhập thất bại: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -112,7 +112,7 @@ public class LoginActivity extends AppCompatActivity {
             if (task.isSuccessful()) {
                 MODE=1;
                 mode();
-                Toast.makeText(LoginActivity.this, "Registration successful", Toast.LENGTH_SHORT).show();
+                Toast.makeText(LoginActivity.this, "Đăng ký thành công", Toast.LENGTH_SHORT).show();
             } else {
                 Toast.makeText(LoginActivity.this, "Registration failed: " +
                         task.getException().getMessage(), Toast.LENGTH_SHORT).show();

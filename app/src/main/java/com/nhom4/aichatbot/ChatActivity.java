@@ -57,7 +57,7 @@ public class ChatActivity extends AppCompatActivity implements ApiCall.ApiRespon
 
         String chatId = getIntent().getStringExtra("CHAT_ID");
         if (chatId == null) {
-            Toast.makeText(this, "Error: Chat ID not found.", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Lỗi: Không tìm thấy ID cuộc trò chuyện.", Toast.LENGTH_LONG).show();
             finish();
             return;
         }
@@ -77,7 +77,7 @@ public class ChatActivity extends AppCompatActivity implements ApiCall.ApiRespon
         }
 
         if (currentChat == null) {
-            Toast.makeText(this, "Error: Chat not found in database.", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Lỗi: Không tìm thấy cuộc trò chuyện trong cơ sở dữ liệu.", Toast.LENGTH_LONG).show();
             finish();
             return;
         }
@@ -114,7 +114,7 @@ public class ChatActivity extends AppCompatActivity implements ApiCall.ApiRespon
     private void updateChatInFirebase() {
         if (firebaseChatRef != null && currentChat != null) {
             firebaseChatRef.setValue(currentChat)
-                    .addOnFailureListener(e -> Toast.makeText(ChatActivity.this, "Failed to sync chat to Firebase", Toast.LENGTH_SHORT).show());
+                    .addOnFailureListener(e -> Toast.makeText(ChatActivity.this, "Đồng bộ hóa cuộc trò chuyện lên Firebase thất bại", Toast.LENGTH_SHORT).show());
         }
     }
 
@@ -150,7 +150,7 @@ public class ChatActivity extends AppCompatActivity implements ApiCall.ApiRespon
             chatDbHelper.updateChat(currentChat);
             updateChatInFirebase();
             messageAdapter.notifyDataSetChanged();
-            Toast.makeText(this, "Chat reset successfully.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Đặt lại cuộc trò chuyện thành công.", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -190,7 +190,7 @@ public class ChatActivity extends AppCompatActivity implements ApiCall.ApiRespon
         List<String> activeSystemPrompts = getActiveSystemPrompts();
 
         if (activeEndpoint == null || activeModel == null) {
-            onFailure("Error: No active Endpoint or Model found in settings.");
+            onFailure("Lỗi: Không tìm thấy Endpoint hoặc Model đang hoạt động trong cài đặt.");
             return;
         }
 
