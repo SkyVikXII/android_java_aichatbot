@@ -52,44 +52,56 @@ public class ModelDbHelper {
         List<Model> defaultModels = new ArrayList<>();
 
         // Default Model 1
-        Model defaultModel1 = new Model();
-        defaultModel1.setId("model_default_0");
-        defaultModel1.setName("DeepSeek: DeepSeek V3.1 (free)");
-        defaultModel1.setDescription("DeepSeek-V3.1 is a large hybrid reasoning model (671B parameters, 37B active) that supports both thinking and non-thinking modes via prompt templates.");
-        defaultModel1.setContext_length("64000");
-        defaultModel1.setMax_tokens("16000");
-        defaultModel1.setTemperature("1.0");
-        defaultModel1.setTop_p("1.0");
-        defaultModel1.setFrequency_penalty("0.0");
-        defaultModel1.setPresence_penalty("0.0");
-        defaultModel1.setDefault(true);
-        defaultModel1.setActive(true);
-        defaultModel1.setApi_model_id("deepseek/deepseek-chat-v3.1:free");
-        defaultModels.add(defaultModel1);
+        Model defaultModel = new Model();
+        defaultModel.setId("model_default_0");
+        defaultModel.setName("DeepSeek: DeepSeek V3.1 (free)");
+        defaultModel.setDescription("DeepSeek-V3.1 is a large hybrid reasoning model (671B parameters, 37B active) that supports both thinking and non-thinking modes via prompt templates.");
+        defaultModel.setContext_length("64000");
+        defaultModel.setMax_tokens("16000");
+        defaultModel.setTemperature("1.0");
+        defaultModel.setTop_p("1.0");
+        defaultModel.setFrequency_penalty("0.0");
+        defaultModel.setPresence_penalty("0.0");
+        defaultModel.setDefault(true);
+        defaultModel.setActive(true);
+        defaultModel.setApi_model_id("deepseek/deepseek-chat-v3.1:free");
 
-        // Default Model 2 (Example)
-        Model defaultModel2 = new Model();
-        defaultModel2.setId("model_default_1");
-        defaultModel2.setName("OpenAI: gpt-oss-120b (free)");
-        defaultModel2.setDescription("gpt-oss-120b is an open-weight, 117B-parameter Mixture-of-Experts (MoE) language model from OpenAI designed for high-reasoning, agentic, and general-purpose production use cases.");
-        defaultModel2.setContext_length("32000");
-        defaultModel2.setMax_tokens("8000");
-        defaultModel2.setTemperature("0.7");
-        defaultModel2.setTop_p("0.9");
-        defaultModel2.setFrequency_penalty("0.0");
-        defaultModel2.setPresence_penalty("0.0");
-        defaultModel2.setDefault(true);
-        defaultModel2.setActive(false);
-        defaultModel2.setApi_model_id("openai/gpt-oss-120b:free");
-        defaultModels.add(defaultModel2);
+        if(this.getModelById("model_default_0") != null){
+            if(!this.getModelById("model_default_0").isActive()){
+                defaultModel.setActive(false);
+            }
+        }
+        defaultModels.add(defaultModel);
 
-        for (Model defaultModel : defaultModels) {
-            Model existingModel = getModelById(defaultModel.getId());
+        // Default Model 2
+        defaultModel.setId("model_default_1");
+        defaultModel.setName("OpenAI: gpt-oss-120b (free)");
+        defaultModel.setDescription("gpt-oss-120b is an open-weight, 117B-parameter Mixture-of-Experts (MoE) language model from OpenAI designed for high-reasoning, agentic, and general-purpose production use cases.");
+        defaultModel.setContext_length("32000");
+        defaultModel.setMax_tokens("8000");
+        defaultModel.setTemperature("0.7");
+        defaultModel.setTop_p("0.9");
+        defaultModel.setFrequency_penalty("0.0");
+        defaultModel.setPresence_penalty("0.0");
+        defaultModel.setDefault(true);
+        defaultModel.setActive(false);
+        defaultModel.setApi_model_id("openai/gpt-oss-120b:free");
+        if(this.getModelById("model_default_1") != null){
+            if(this.getModelById("model_default_1").isActive()){
+                defaultModel.setActive(true);
+            }else{
+                defaultModel.setActive(false);
+            }
+        }
+        defaultModels.add(defaultModel);
+
+        for (Model model : defaultModels) {
+            Model existingModel = getModelById(model.getId());
             if (existingModel == null) {
-                addModel(defaultModel, true);
+                addModel(model, true);
             } else {
                 // Update existing default model
-                updateModel(defaultModel, true);
+                updateModel(model, true);
             }
         }
     }
