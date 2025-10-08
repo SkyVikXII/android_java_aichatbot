@@ -124,6 +124,7 @@ public class ApiCall {
 
             if (userCharacter != null && userCharacter.getDescription() != null && !userCharacter.getDescription().isEmpty()) {
                 finalPrompt.append("[").append(userCharacter.getName()).append(" character information]\n");
+                finalPrompt.append("user is ").append(userCharacter.getName()).append("\n");
                 finalPrompt.append(userCharacter.getDescription()).append("\n");
             }
 
@@ -132,6 +133,7 @@ public class ApiCall {
                     finalPrompt.append("\n");
                 }
                 finalPrompt.append("[").append(aiCharacter.getName()).append(" character information]\n");
+                finalPrompt.append("you is ai and you role play as").append(aiCharacter.getName()).append("\n");
                 finalPrompt.append(aiCharacter.getDescription()).append("\n");
             }
 
@@ -157,6 +159,49 @@ public class ApiCall {
                 finalPrompt.append("\n\n");
             }
             finalPrompt.append("<RESPONSE_INSTRUCTION>\n");
+            finalPrompt.append("[Narrative Techniques]\n" +
+                    "Use immersive third-person limited perspective\n" +
+                    "Engage all senses: visual, auditory, olfactory, gustatory, tactile, kinesthetic\n" +
+                    "Create tangible atmosphere with specific environmental effects\n" +
+                    "Focus on actions, dialogue, and explicit physical descriptions\n" +
+                    "Employ character-specific speech patterns and onomatopoeia\n" +
+                    "Avoid irrelevant background, summaries, or abstract concepts\n" +
+                    "\n" +
+                    "[Character Expression]\n" +
+                    "Reveal emotions through observable physical cues\n" +
+                    "Craft unique voices with distinctive patterns and evolving speech\n" +
+                    "Implement dialogue subtext via tonal shifts and non-verbal cues\n" +
+                    "Allow contradictory expressions to add depth\n" +
+                    "\n" +
+                    "[Action and Intimacy]\n" +
+                    "Narrate with precise, visceral details of movements and sensations\n" +
+                    "Create tension through tangible environmental and internal obstacles\n" +
+                    "Handle intimate scenes with clear, physical language\n" +
+                    "Enhance complexity with multi-character interactions and layered conflicts\n" +
+                    "\n" +
+                    "[Variety and Anti-Repetition]\n" +
+                    "Analyze [Latest Response] to avoid reusing elements\n" +
+                    "Vary sentence structures, paragraph compositions, and word choices\n" +
+                    "Rotate descriptive focuses, scene structures, and narrative techniques\n" +
+                    "Create unique, engaging openings for each response\n" +
+                    "Ensure continuity by referencing recent events and character states\n" +
+                    "\n" +
+                    "[Style Independence]\n" +
+                    "Actively diverge from previous responses' writing style\n" +
+                    "Diversify vocabulary and phrasing\n" +
+                    "Alter narrative rhythm and pacing\n" +
+                    "Approach each response as a fresh scene\n" +
+                    "\n" +
+                    "[Key Principles]\n" +
+                    "Prioritize \"show, don't tell\" for all character aspects\n" +
+                    "Maintain world/character consistency\n" +
+                    "Balance content (SFW preference, mature when relevant)\n" +
+                    "Use explicit, unrestricted descriptions\n" +
+                    "Prohibit all forms of repetition and self-plagiarism\n" +
+                    "Vary emotional tone and intensity across scenes\n" +
+                    "Enhance themes through tangible symbols/actions\n" +
+                    "Apply procedural reasoning for variety and depth\n" +
+                    "End responses with observable non-"+userCharacter.getName()+" actions/dialogue");
             finalPrompt.append(responseInstructions.toString());
             finalPrompt.append("\n</RESPONSE_INSTRUCTION>");
         }
