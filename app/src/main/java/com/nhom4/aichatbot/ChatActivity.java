@@ -149,6 +149,7 @@ public class ChatActivity extends AppCompatActivity implements ApiCall.ApiRespon
             currentChat.setMessages(new ArrayList<>());
             chatDbHelper.updateChat(currentChat);
             updateChatInFirebase();
+            setupRecyclerView();
             messageAdapter.notifyDataSetChanged();
             Toast.makeText(this, "Đặt lại cuộc trò chuyện thành công.", Toast.LENGTH_SHORT).show();
         }
@@ -168,18 +169,18 @@ public class ChatActivity extends AppCompatActivity implements ApiCall.ApiRespon
             return;
         }
 
-        // 1. Create and add user message to UI
+
         Message userMessage = new Message(UUID.randomUUID().toString(), new Date(), currentChat.getCharacterUser().getId(), messageText);
         currentChat.getMessages().add(userMessage);
         messageAdapter.notifyItemInserted(currentChat.getMessages().size() - 1);
         recyclerViewMessages.scrollToPosition(currentChat.getMessages().size() - 1);
         editTextMessage.setText("");
 
-        // 2. Persist the new message
+
         chatDbHelper.updateChat(currentChat);
         updateChatInFirebase();
 
-        // 3. Get AI response
+
         getAiResponse(messageText);
     }
 
@@ -246,7 +247,8 @@ public class ChatActivity extends AppCompatActivity implements ApiCall.ApiRespon
     private List<Prompt> getActiveSystemPrompts() {
         List<Prompt> prompts = new ArrayList<>();
         for (Prompt p : promptDbHelper.getAllPrompts()) {
-            if (p.isActive() && (p.getType() == 1||p.getType() == 2)) { // Type 1 = System
+            if (p.isActive() && (p.getType() == 1||p.getType() == 2)) {
+                // Type 1 = System, 2 inject
                 prompts.add(p);
             }
         }

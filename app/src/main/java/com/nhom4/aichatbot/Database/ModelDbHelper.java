@@ -65,7 +65,7 @@ public class ModelDbHelper {
         defaultModel1.setFrequency_penalty("0.0");
         defaultModel1.setPresence_penalty("0.0");
         defaultModel1.setDefault(true);
-        defaultModel1.setActive(true);
+        defaultModel1.setActive(false);
         defaultModel1.setApi_model_id("deepseek/deepseek-chat-v3-0324:free");
 
         if(this.getModelById(defaultModel1.getId()) != null){
@@ -89,7 +89,7 @@ public class ModelDbHelper {
         defaultModel2.setFrequency_penalty("0.0");
         defaultModel2.setPresence_penalty("0.0");
         defaultModel2.setDefault(true);
-        defaultModel2.setActive(false);
+        defaultModel2.setActive(true);
         defaultModel2.setApi_model_id("openai/gpt-oss-20b:free");
         if(this.getModelById(defaultModel2.getId()) != null){
             if(this.getModelById(defaultModel2.getId()).isActive()){
