@@ -25,6 +25,8 @@
             android:id="@+id/editTextNewChatDescription"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:inputType="textMultiLine"
+            android:minLines="6"
             android:hint="Description (Optional)" />
     </com.google.android.material.textfield.TextInputLayout>
 
