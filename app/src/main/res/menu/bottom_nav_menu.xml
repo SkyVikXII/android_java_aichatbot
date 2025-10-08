@@ -2,16 +2,16 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
         android:id="@+id/nav_character"
-        android:title="Character"
+        android:title="Nhân Vật"
         android:icon="@android:drawable/ic_menu_my_calendar"/>
 
     <item
         android:id="@+id/nav_chat"
-        android:title="Chat"
+        android:title="Trò Chuyện"
         android:icon="@android:drawable/ic_menu_send"/>
 
     <item
         android:id="@+id/nav_settings"
-        android:title="Settings"
+        android:title="Cài Đặt"
         android:icon="@android:drawable/ic_menu_preferences"/>
 </menu>
