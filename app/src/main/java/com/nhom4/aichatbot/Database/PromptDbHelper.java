@@ -89,6 +89,13 @@ public class PromptDbHelper {
         defaultPrompt1.setType(1); // 1 for System
         defaultPrompt1.setDefault(true);
         defaultPrompt1.setActive(true);
+        if(this.getPromptById(defaultPrompt1.getId()) != null){
+            if(!this.getPromptById(defaultPrompt1.getId()).isActive()){
+                defaultPrompt1.setActive(false);
+            }else{
+                defaultPrompt1.setActive(true);
+            }
+        }
         defaultPrompts.add(defaultPrompt1);
 
         // Default Prompt 2 (Example)
@@ -99,15 +106,21 @@ public class PromptDbHelper {
         defaultPrompt2.setType(2); // 2 for End Injection
         defaultPrompt2.setDefault(true);
         defaultPrompt2.setActive(false);
+        if(this.getPromptById(defaultPrompt2.getId()) != null){
+            if(!this.getPromptById(defaultPrompt2.getId()).isActive()){
+                defaultPrompt2.setActive(false);
+            }else{
+                defaultPrompt2.setActive(true);
+            }
+        }
         defaultPrompts.add(defaultPrompt2);
 
-        for (Prompt defaultPrompt : defaultPrompts) {
-            Prompt existingPrompt = getPromptById(defaultPrompt.getId());
+        for (Prompt prompt : defaultPrompts) {
+            Prompt existingPrompt = getPromptById(prompt.getId());
             if (existingPrompt == null) {
-                addPrompt(defaultPrompt, true);
+                addPrompt(prompt, true);
             } else {
-                // Update existing default prompt
-                updatePrompt(defaultPrompt, true);
+                updatePrompt(prompt, true);
             }
         }
     }

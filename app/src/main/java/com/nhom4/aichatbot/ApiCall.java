@@ -26,6 +26,10 @@ public class ApiCall {
     private final OkHttpClient client;
     private final Gson gson;
 
+    // Constants for API types
+    private static final String API_TYPE_OPENAI = "openai";
+    private static final String API_TYPE_GOOGLE = "google";
+
     public interface ApiResponseListener {
         void onSuccess(String response);
         void onFailure(String errorMessage);
@@ -38,49 +42,25 @@ public class ApiCall {
 
     public void makeApiCall(String apiEndpoint, String apiKey, String modelName, int maxResponseToken, float temperature, float repetitionPenalty, float topP, String userMessage, List<Message> conversationHistory, Character userCharacter, Character aiCharacter, List<String> systemPrompts, ApiResponseListener listener) {
         try {
-            JsonArray messagesArray = new JsonArray();
+            // Determine API type based on endpoint
+            String apiType = determineApiType(apiEndpoint);
 
-            // Add system prompts
-            for (String prompt : systemPrompts) {
-                JsonObject systemMessage = new JsonObject();
-                systemMessage.addProperty("role", "system");
-                systemMessage.addProperty("content", prompt);
-                messagesArray.add(systemMessage);
+            RequestBody body;
+            Request request;
+
+            switch (apiType) {
+                case API_TYPE_GOOGLE:
+                    body = createGoogleRequestBody(modelName, userMessage, conversationHistory, userCharacter, aiCharacter, systemPrompts, maxResponseToken, temperature, topP);
+                    request = createGoogleRequest(apiEndpoint, apiKey, body);
+                    break;
+                case API_TYPE_OPENAI:
+                default:
+                    body = createOpenAIRequestBody(modelName, userMessage, conversationHistory, userCharacter, aiCharacter, systemPrompts, maxResponseToken, temperature, repetitionPenalty, topP);
+                    request = createOpenAIRequest(apiEndpoint, apiKey, body);
+                    break;
             }
 
-            // Add conversation history
-            for (Message msg : conversationHistory) {
-                JsonObject messageObj = new JsonObject();
-                String role = msg.getRole().equals(userCharacter.getId()) ? "user" : "assistant";
-                messageObj.addProperty("role", role);
-                messageObj.addProperty("content", msg.getContent());
-                messagesArray.add(messageObj);
-            }
-
-            // Add the current user message
-            JsonObject userMessageObj = new JsonObject();
-            userMessageObj.addProperty("role", "user");
-            userMessageObj.addProperty("content", userMessage);
-            messagesArray.add(userMessageObj);
-
-            // Create the request body
-            JsonObject requestBody = new JsonObject();
-            requestBody.addProperty("model", modelName);
-            requestBody.add("messages", messagesArray);
-            requestBody.addProperty("max_tokens", maxResponseToken);
-            requestBody.addProperty("temperature", temperature);
-            requestBody.addProperty("repetition_penalty", repetitionPenalty);
-            requestBody.addProperty("top_p", topP);
-
-            String requestBodyString = requestBody.toString();
-            RequestBody body = RequestBody.create(requestBodyString, MediaType.parse("application/json"));
-
-            Request request = new Request.Builder()
-                    .url(apiEndpoint)
-                    .post(body)
-                    .addHeader("Authorization", "Bearer " + apiKey)
-                    .addHeader("Content-Type", "application/json")
-                    .build();
+            Log.d(TAG, "Request: " + request.toString());
 
             client.newCall(request).enqueue(new Callback() {
                 @Override
@@ -94,15 +74,8 @@ public class ApiCall {
                     String responseBody = response.body().string();
                     if (response.isSuccessful()) {
                         try {
-                            JsonObject jsonResponse = gson.fromJson(responseBody, JsonObject.class);
-                            if (jsonResponse.has("choices") && jsonResponse.getAsJsonArray("choices").size() > 0) {
-                                JsonObject choice = jsonResponse.getAsJsonArray("choices").get(0).getAsJsonObject();
-                                JsonObject message = choice.getAsJsonObject("message");
-                                String aiResponse = message.get("content").getAsString();
-                                listener.onSuccess(aiResponse);
-                            } else {
-                                listener.onFailure("No choices in response");
-                            }
+                            String aiResponse = parseApiResponse(apiType, responseBody);
+                            listener.onSuccess(aiResponse);
                         } catch (Exception e) {
                             Log.e(TAG, "Error parsing response: " + e.getMessage(), e);
                             listener.onFailure("Error parsing response");
@@ -118,5 +91,149 @@ public class ApiCall {
             Log.e(TAG, "Exception in makeApiCall: " + e.getMessage(), e);
             listener.onFailure("Error: " + e.getMessage());
         }
+    }
+
+    private String determineApiType(String apiEndpoint) {
+        if (apiEndpoint.contains("generativelanguage.googleapis.com") ||
+                apiEndpoint.contains("googleapis.com")) {
+            return API_TYPE_GOOGLE;
+        }
+        return API_TYPE_OPENAI;
+    }
+
+    private RequestBody createOpenAIRequestBody(String modelName, String userMessage, List<Message> conversationHistory, Character userCharacter, Character aiCharacter, List<String> systemPrompts, int maxResponseToken, float temperature, float repetitionPenalty, float topP) {
+        JsonArray messagesArray = new JsonArray();
+
+        // Add system prompts
+        for (String prompt : systemPrompts) {
+            JsonObject systemMessage = new JsonObject();
+            systemMessage.addProperty("role", "system");
+            systemMessage.addProperty("content", prompt);
+            messagesArray.add(systemMessage);
+        }
+
+        // Add conversation history
+        for (Message msg : conversationHistory) {
+            JsonObject messageObj = new JsonObject();
+            String role = msg.getRole().equals(userCharacter.getId()) ? "user" : "assistant";
+            messageObj.addProperty("role", role);
+            messageObj.addProperty("content", msg.getContent());
+            messagesArray.add(messageObj);
+        }
+
+        // Add the current user message
+        JsonObject userMessageObj = new JsonObject();
+        userMessageObj.addProperty("role", "user");
+        userMessageObj.addProperty("content", userMessage);
+        messagesArray.add(userMessageObj);
+
+        // Create the request body
+        JsonObject requestBody = new JsonObject();
+        requestBody.addProperty("model", modelName);
+        requestBody.add("messages", messagesArray);
+        requestBody.addProperty("max_tokens", maxResponseToken);
+        requestBody.addProperty("temperature", temperature);
+        requestBody.addProperty("repetition_penalty", repetitionPenalty);
+        requestBody.addProperty("top_p", topP);
+
+        String requestBodyString = requestBody.toString();
+        return RequestBody.create(requestBodyString, MediaType.parse("application/json"));
+    }
+
+    private RequestBody createGoogleRequestBody(String modelName, String userMessage, List<Message> conversationHistory, Character userCharacter, Character aiCharacter, List<String> systemPrompts, int maxResponseToken, float temperature, float topP) {
+        JsonArray messagesArray = new JsonArray();
+
+        // Add system prompts as the first system message (Google Gemini format)
+        if (!systemPrompts.isEmpty()) {
+            StringBuilder combinedSystemPrompts = new StringBuilder();
+            for (String prompt : systemPrompts) {
+                if (combinedSystemPrompts.length() > 0) {
+                    combinedSystemPrompts.append("\n");
+                }
+                combinedSystemPrompts.append(prompt);
+            }
+            JsonObject systemMessage = new JsonObject();
+            systemMessage.addProperty("role", "system");
+            systemMessage.addProperty("content", combinedSystemPrompts.toString());
+            messagesArray.add(systemMessage);
+        }
+
+        // Add conversation history
+        for (Message msg : conversationHistory) {
+            JsonObject messageObj = new JsonObject();
+            String role = msg.getRole().equals(userCharacter.getId()) ? "user" : "assistant";
+            messageObj.addProperty("role", role);
+            messageObj.addProperty("content", msg.getContent());
+            messagesArray.add(messageObj);
+        }
+
+        // Add the current user message
+        JsonObject userMessageObj = new JsonObject();
+        userMessageObj.addProperty("role", "user");
+        userMessageObj.addProperty("content", userMessage);
+        messagesArray.add(userMessageObj);
+
+        // Create the request body for Google Gemini
+        JsonObject requestBody = new JsonObject();
+        requestBody.addProperty("model", modelName);
+        requestBody.add("messages", messagesArray);
+        requestBody.addProperty("max_tokens", maxResponseToken);
+        requestBody.addProperty("temperature", temperature);
+        requestBody.addProperty("top_p", topP);
+        // Note: Google Gemini doesn't support repetition_penalty in the same way
+
+        String requestBodyString = requestBody.toString();
+        return RequestBody.create(requestBodyString, MediaType.parse("application/json"));
+    }
+
+    private Request createOpenAIRequest(String apiEndpoint, String apiKey, RequestBody body) {
+        return new Request.Builder()
+                .url(apiEndpoint)
+                .post(body)
+                .addHeader("Authorization", "Bearer " + apiKey)
+                .addHeader("Content-Type", "application/json")
+                .build();
+    }
+
+    private Request createGoogleRequest(String apiEndpoint, String apiKey, RequestBody body) {
+        return new Request.Builder()
+                .url(apiEndpoint)
+                .post(body)
+                .addHeader("Authorization", "Bearer " + apiKey)
+                .addHeader("Content-Type", "application/json")
+                .build();
+    }
+
+    private String parseApiResponse(String apiType, String responseBody) {
+        JsonObject jsonResponse = gson.fromJson(responseBody, JsonObject.class);
+
+        switch (apiType) {
+            case API_TYPE_GOOGLE:
+                if (jsonResponse.has("choices") && jsonResponse.getAsJsonArray("choices").size() > 0) {
+                    JsonObject choice = jsonResponse.getAsJsonArray("choices").get(0).getAsJsonObject();
+                    JsonObject message = choice.getAsJsonObject("message");
+                    return message.get("content").getAsString();
+                } else if (jsonResponse.has("candidates") && jsonResponse.getAsJsonArray("candidates").size() > 0) {
+                    // Alternative Google response format
+                    JsonObject candidate = jsonResponse.getAsJsonArray("candidates").get(0).getAsJsonObject();
+                    JsonObject content = candidate.getAsJsonObject("content");
+                    JsonArray parts = content.getAsJsonArray("parts");
+                    if (parts.size() > 0) {
+                        return parts.get(0).getAsJsonObject().get("text").getAsString();
+                    }
+                }
+                break;
+
+            case API_TYPE_OPENAI:
+            default:
+                if (jsonResponse.has("choices") && jsonResponse.getAsJsonArray("choices").size() > 0) {
+                    JsonObject choice = jsonResponse.getAsJsonArray("choices").get(0).getAsJsonObject();
+                    JsonObject message = choice.getAsJsonObject("message");
+                    return message.get("content").getAsString();
+                }
+                break;
+        }
+
+        throw new RuntimeException("No valid response found in API response");
     }
 }

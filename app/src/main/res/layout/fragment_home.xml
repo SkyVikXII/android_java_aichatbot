@@ -1,14 +1,64 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:gravity="center"
-    android:orientation="vertical">
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Home Fragment"
-        android:textSize="20sp"/>
-
-</LinearLayout>
+    android:layout_height="match_parent">
+    <LinearLayout
+        android:layout_margin="12dp"
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <TextView
+            android:gravity="center"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Gioi Thieu"/>
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="la mot ung dung cho phep nguoi dung nhap vai, duoc tao ra boi AI"/>
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="ban co the bat dau bang viec tao ra nhan vat, sau do tao 1 cuoc tro chuyen voi AI bang nhan vat da tao. ban co the bat dau bang cach chon vao muc menu o phia duoi"/>
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="ung dung co ho tro cac chuc nang cho phep nguoi dung tuy chinh cac mo hinh AI neu ban muon, viec cau hinh yeu cau ban co 1 so kien thuc nhat dinh, nhung neu ban khong muon thi van co the su dung nhu binh thuong"/>
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="cac mo hinh ngon nhu lon va nha cung cap dich vu cua chung, co the bao tri hoac tam dung hoat dong 1 so mo hinh, nen khong han chung se hoat dong 100%"/>
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="voi kha nang tuy chinh cao cua ung dung cho phep nguoi dung su dung mo hinh ngon ngu cuc bo, ban can dich chi (endpoint) va api key"/>
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="end point : dia chi dung de gui du lieu len mo hinh ngon ngu lon"/>
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="API KEY : chia khoa de truy cap den mo hinh ngon nhu lon"/>
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="de them ket noi den mo hinh ngon ngu ban co the kiem o nha cung cap dich vu, doi voi chay cuc bo tren PC vui long doc huong dan chi tiet trong tai lieu thuong endpoint se co dich chi nhu"/>
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="localhost\nhttp://localhost:5000/v1/chat/completions\nhttp://ip:port/v1/chat/completions\nip : dia chi ip cua server\nport: cong cua server"/>
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Openai\nhttps://api.openai.com/v1/chat/completions"/>
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Deepseek\nhttps://api.deepseek.com/chat/completions"/>
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Luu y : ban khong the dung endpoint url cua open ai de dung mo hinh ngon cua cua deepseek, open ai khong co mo hinh ngon nhu cua deepseek va se bao loi"/>
+    </LinearLayout>
+</ScrollView>

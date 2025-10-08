@@ -2,6 +2,8 @@ package com.nhom4.aichatbot.Database;
 
 import android.content.Context;
 import android.database.Cursor;
+import android.util.Log;
+
 import com.nhom4.aichatbot.Models.Model;
 import java.util.ArrayList;
 import java.util.List;
@@ -49,13 +51,13 @@ public class ModelDbHelper {
     }
 
     private void populateInitialData() {
-        List<Model> defaultModels = new ArrayList<>();
+        ArrayList<Model> defaultModels = new ArrayList<>();
 
         // Default Model 1
         Model defaultModel1 = new Model();
         defaultModel1.setId("model_default_0");
-        defaultModel1.setName("DeepSeek: DeepSeek V3.1 (free)");
-        defaultModel1.setDescription("DeepSeek-V3.1 is a large hybrid reasoning model (671B parameters, 37B active) that supports both thinking and non-thinking modes via prompt templates.");
+        defaultModel1.setName("DeepSeek: DeepSeek V3 0324 (free)");
+        defaultModel1.setDescription("DeepSeek V3, a 685B-parameter, mixture-of-experts model, is the latest iteration of the flagship chat model family from the DeepSeek team. It succeeds the DeepSeek V3 model and performs really well on a variety of tasks.");
         defaultModel1.setContext_length("64000");
         defaultModel1.setMax_tokens("16000");
         defaultModel1.setTemperature("1.0");
@@ -64,14 +66,22 @@ public class ModelDbHelper {
         defaultModel1.setPresence_penalty("0.0");
         defaultModel1.setDefault(true);
         defaultModel1.setActive(true);
-        defaultModel1.setApi_model_id("deepseek/deepseek-chat-v3.1:free");
+        defaultModel1.setApi_model_id("deepseek/deepseek-chat-v3-0324:free");
+
+        if(this.getModelById(defaultModel1.getId()) != null){
+            if(this.getModelById(defaultModel1.getId()).isActive()){
+                defaultModel1.setActive(true);
+            }else{
+                defaultModel1.setActive(false);
+            }
+        }
         defaultModels.add(defaultModel1);
 
-        // Default Model 2 (Example)
+        // Default Model 2
         Model defaultModel2 = new Model();
         defaultModel2.setId("model_default_1");
-        defaultModel2.setName("OpenAI: gpt-oss-120b (free)");
-        defaultModel2.setDescription("gpt-oss-120b is an open-weight, 117B-parameter Mixture-of-Experts (MoE) language model from OpenAI designed for high-reasoning, agentic, and general-purpose production use cases.");
+        defaultModel2.setName("OpenAI: gpt-oss-20b (free)");
+        defaultModel2.setDescription("gpt-oss-20b is an open-weight 21B parameter model released by OpenAI under the Apache 2.0 license. It uses a Mixture-of-Experts (MoE) architecture with 3.6B active parameters per forward pass, optimized for lower-latency inference and deployability on consumer or single-GPU hardware.");
         defaultModel2.setContext_length("32000");
         defaultModel2.setMax_tokens("8000");
         defaultModel2.setTemperature("0.7");
@@ -80,16 +90,47 @@ public class ModelDbHelper {
         defaultModel2.setPresence_penalty("0.0");
         defaultModel2.setDefault(true);
         defaultModel2.setActive(false);
-        defaultModel2.setApi_model_id("openai/gpt-oss-120b:free");
+        defaultModel2.setApi_model_id("openai/gpt-oss-20b:free");
+        if(this.getModelById(defaultModel2.getId()) != null){
+            if(this.getModelById(defaultModel2.getId()).isActive()){
+                defaultModel2.setActive(true);
+            }else{
+                defaultModel2.setActive(false);
+            }
+        }
         defaultModels.add(defaultModel2);
 
-        for (Model defaultModel : defaultModels) {
-            Model existingModel = getModelById(defaultModel.getId());
-            if (existingModel == null) {
-                addModel(defaultModel, true);
+        //3
+        Model defaultModel3 = new Model();
+        defaultModel3.setId("model_default_2");
+        defaultModel3.setName("Google: gemini 2.0 flash");
+        defaultModel3.setDescription("Gemini Flash 2.0 offers a significantly faster time to first token (TTFT) compared to Gemini Flash 1.5, while maintaining quality on par with larger models like Gemini Pro 1.5.");
+        defaultModel3.setContext_length("32000");
+        defaultModel3.setMax_tokens("8000");
+        defaultModel3.setTemperature("1.0");
+        defaultModel3.setTop_p("1.0");
+        defaultModel3.setFrequency_penalty("0.0");
+        defaultModel3.setPresence_penalty("0.0");
+        defaultModel3.setDefault(true);
+        defaultModel3.setActive(false);
+        defaultModel3.setApi_model_id("gemini-2.0-flash");
+        if(this.getModelById(defaultModel3.getId()) != null){
+            if(this.getModelById(defaultModel3.getId()).isActive()){
+                defaultModel3.setActive(true);
+            }else{
+                defaultModel3.setActive(false);
+            }
+        }
+        defaultModels.add(defaultModel3);
+
+        defaultModels.toString();
+        Log.d("testdata",defaultModels.toString());
+        for(int i = 0;i < defaultModels.size();i++){
+            Log.d("testdata",defaultModels.get(i).toString());
+            if (getModelById(defaultModels.get(i).getId()) == null) {
+                addModel(defaultModels.get(i), true);
             } else {
-                // Update existing default model
-                updateModel(defaultModel, true);
+                updateModel(defaultModels.get(i), true);
             }
         }
     }
