@@ -187,7 +187,7 @@ public class ChatActivity extends AppCompatActivity implements ApiCall.ApiRespon
         // Gather all active settings for the API call
         Endpoint activeEndpoint = getActiveEndpoint();
         Model activeModel = getActiveModel();
-        List<String> activeSystemPrompts = getActiveSystemPrompts();
+        List<Prompt> activeSystemPrompts = getActiveSystemPrompts();
 
         if (activeEndpoint == null || activeModel == null) {
             onFailure("Lỗi: Không tìm thấy Endpoint hoặc Model đang hoạt động trong cài đặt.");
@@ -243,11 +243,11 @@ public class ChatActivity extends AppCompatActivity implements ApiCall.ApiRespon
         return null;
     }
 
-    private List<String> getActiveSystemPrompts() {
-        List<String> prompts = new ArrayList<>();
+    private List<Prompt> getActiveSystemPrompts() {
+        List<Prompt> prompts = new ArrayList<>();
         for (Prompt p : promptDbHelper.getAllPrompts()) {
-            if (p.isActive() && p.getType() == 1) { // Type 1 = System
-                prompts.add(p.getContent());
+            if (p.isActive() && (p.getType() == 1||p.getType() == 2)) { // Type 1 = System
+                prompts.add(p);
             }
         }
         return prompts;

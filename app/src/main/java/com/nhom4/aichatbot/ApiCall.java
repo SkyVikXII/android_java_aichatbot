@@ -9,6 +9,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.nhom4.aichatbot.Models.Character;
 import com.nhom4.aichatbot.Models.Message;
+import com.nhom4.aichatbot.Models.Prompt;
 
 import java.io.IOException;
 import java.util.List;
@@ -40,7 +41,7 @@ public class ApiCall {
         this.gson = new Gson();
     }
 
-    public void makeApiCall(String apiEndpoint, String apiKey, String modelName, int maxResponseToken, float temperature, float repetitionPenalty, float topP, String userMessage, List<Message> conversationHistory, Character userCharacter, Character aiCharacter, List<String> systemPrompts, ApiResponseListener listener) {
+    public void makeApiCall(String apiEndpoint, String apiKey, String modelName, int maxResponseToken, float temperature, float repetitionPenalty, float topP, String userMessage, List<Message> conversationHistory, Character userCharacter, Character aiCharacter, List<Prompt> prompts, ApiResponseListener listener) {
         try {
             // Determine API type based on endpoint
             String apiType = determineApiType(apiEndpoint);
@@ -50,12 +51,12 @@ public class ApiCall {
 
             switch (apiType) {
                 case API_TYPE_GOOGLE:
-                    body = createGoogleRequestBody(modelName, userMessage, conversationHistory, userCharacter, aiCharacter, systemPrompts, maxResponseToken, temperature, topP);
+                    body = createGoogleRequestBody(modelName, userMessage, conversationHistory, userCharacter, aiCharacter, prompts, maxResponseToken, temperature, topP);
                     request = createGoogleRequest(apiEndpoint, apiKey, body);
                     break;
                 case API_TYPE_OPENAI:
                 default:
-                    body = createOpenAIRequestBody(modelName, userMessage, conversationHistory, userCharacter, aiCharacter, systemPrompts, maxResponseToken, temperature, repetitionPenalty, topP);
+                    body = createOpenAIRequestBody(modelName, userMessage, conversationHistory, userCharacter, aiCharacter, prompts, maxResponseToken, temperature, repetitionPenalty, topP);
                     request = createOpenAIRequest(apiEndpoint, apiKey, body);
                     break;
             }
@@ -101,14 +102,122 @@ public class ApiCall {
         return API_TYPE_OPENAI;
     }
 
-    private RequestBody createOpenAIRequestBody(String modelName, String userMessage, List<Message> conversationHistory, Character userCharacter, Character aiCharacter, List<String> systemPrompts, int maxResponseToken, float temperature, float repetitionPenalty, float topP) {
+    private String buildCharacterPrompt(Character userCharacter, Character aiCharacter, List<Prompt> prompts) {
+        StringBuilder finalPrompt = new StringBuilder();
+
+        // Add system prompts (type = 1)
+        for (Prompt prompt : prompts) {
+            if (prompt.getType() == 1 && prompt.isActive()) {
+                if (finalPrompt.length() > 0) {
+                    finalPrompt.append("\n");
+                }
+                finalPrompt.append(prompt.getContent());
+            }
+        }
+
+        // Add character information section
+        if (userCharacter != null || aiCharacter != null) {
+            if (finalPrompt.length() > 0) {
+                finalPrompt.append("\n\n");
+            }
+            finalPrompt.append("<ROLEPLAY_INFO>\n");
+
+            if (userCharacter != null && userCharacter.getDescription() != null && !userCharacter.getDescription().isEmpty()) {
+                finalPrompt.append("[").append(userCharacter.getName()).append(" character information]\n");
+                finalPrompt.append("user is ").append(userCharacter.getName()).append("\n");
+                finalPrompt.append(userCharacter.getDescription()).append("\n");
+            }
+
+            if (aiCharacter != null && aiCharacter.getDescription() != null && !aiCharacter.getDescription().isEmpty()) {
+                if (userCharacter != null && userCharacter.getDescription() != null && !userCharacter.getDescription().isEmpty()) {
+                    finalPrompt.append("\n");
+                }
+                finalPrompt.append("[").append(aiCharacter.getName()).append(" character information]\n");
+                finalPrompt.append("you is ai and you role play as").append(aiCharacter.getName()).append("\n");
+                finalPrompt.append(aiCharacter.getDescription()).append("\n");
+            }
+
+            finalPrompt.append("</ROLEPLAY_INFO>");
+        }
+
+        // Add response instructions section (type = 2)
+        boolean hasResponseInstructions = false;
+        StringBuilder responseInstructions = new StringBuilder();
+
+        for (Prompt prompt : prompts) {
+            if (prompt.getType() == 2 && prompt.isActive()) {
+                if (responseInstructions.length() > 0) {
+                    responseInstructions.append("\n");
+                }
+                responseInstructions.append(prompt.getContent());
+                hasResponseInstructions = true;
+            }
+        }
+
+        if (hasResponseInstructions) {
+            if (finalPrompt.length() > 0) {
+                finalPrompt.append("\n\n");
+            }
+            finalPrompt.append("<RESPONSE_INSTRUCTION>\n");
+            finalPrompt.append("[Narrative Techniques]\n" +
+                    "Use immersive third-person limited perspective\n" +
+                    "Engage all senses: visual, auditory, olfactory, gustatory, tactile, kinesthetic\n" +
+                    "Create tangible atmosphere with specific environmental effects\n" +
+                    "Focus on actions, dialogue, and explicit physical descriptions\n" +
+                    "Employ character-specific speech patterns and onomatopoeia\n" +
+                    "Avoid irrelevant background, summaries, or abstract concepts\n" +
+                    "\n" +
+                    "[Character Expression]\n" +
+                    "Reveal emotions through observable physical cues\n" +
+                    "Craft unique voices with distinctive patterns and evolving speech\n" +
+                    "Implement dialogue subtext via tonal shifts and non-verbal cues\n" +
+                    "Allow contradictory expressions to add depth\n" +
+                    "\n" +
+                    "[Action and Intimacy]\n" +
+                    "Narrate with precise, visceral details of movements and sensations\n" +
+                    "Create tension through tangible environmental and internal obstacles\n" +
+                    "Handle intimate scenes with clear, physical language\n" +
+                    "Enhance complexity with multi-character interactions and layered conflicts\n" +
+                    "\n" +
+                    "[Variety and Anti-Repetition]\n" +
+                    "Analyze [Latest Response] to avoid reusing elements\n" +
+                    "Vary sentence structures, paragraph compositions, and word choices\n" +
+                    "Rotate descriptive focuses, scene structures, and narrative techniques\n" +
+                    "Create unique, engaging openings for each response\n" +
+                    "Ensure continuity by referencing recent events and character states\n" +
+                    "\n" +
+                    "[Style Independence]\n" +
+                    "Actively diverge from previous responses' writing style\n" +
+                    "Diversify vocabulary and phrasing\n" +
+                    "Alter narrative rhythm and pacing\n" +
+                    "Approach each response as a fresh scene\n" +
+                    "\n" +
+                    "[Key Principles]\n" +
+                    "Prioritize \"show, don't tell\" for all character aspects\n" +
+                    "Maintain world/character consistency\n" +
+                    "Balance content (SFW preference, mature when relevant)\n" +
+                    "Use explicit, unrestricted descriptions\n" +
+                    "Prohibit all forms of repetition and self-plagiarism\n" +
+                    "Vary emotional tone and intensity across scenes\n" +
+                    "Enhance themes through tangible symbols/actions\n" +
+                    "Apply procedural reasoning for variety and depth\n" +
+                    "End responses with observable non-"+userCharacter.getName()+" actions/dialogue");
+            finalPrompt.append(responseInstructions.toString());
+            finalPrompt.append("\n</RESPONSE_INSTRUCTION>");
+        }
+
+        return finalPrompt.toString();
+    }
+
+    private RequestBody createOpenAIRequestBody(String modelName, String userMessage, List<Message> conversationHistory, Character userCharacter, Character aiCharacter, List<Prompt> prompts, int maxResponseToken, float temperature, float repetitionPenalty, float topP) {
         JsonArray messagesArray = new JsonArray();
 
-        // Add system prompts
-        for (String prompt : systemPrompts) {
+        // Build the combined system prompt with character information
+        String combinedSystemPrompt = buildCharacterPrompt(userCharacter, aiCharacter, prompts);
+        if (!combinedSystemPrompt.isEmpty()) {
             JsonObject systemMessage = new JsonObject();
             systemMessage.addProperty("role", "system");
-            systemMessage.addProperty("content", prompt);
+            systemMessage.addProperty("content", combinedSystemPrompt);
             messagesArray.add(systemMessage);
         }
 
@@ -140,21 +249,15 @@ public class ApiCall {
         return RequestBody.create(requestBodyString, MediaType.parse("application/json"));
     }
 
-    private RequestBody createGoogleRequestBody(String modelName, String userMessage, List<Message> conversationHistory, Character userCharacter, Character aiCharacter, List<String> systemPrompts, int maxResponseToken, float temperature, float topP) {
+    private RequestBody createGoogleRequestBody(String modelName, String userMessage, List<Message> conversationHistory, Character userCharacter, Character aiCharacter, List<Prompt> prompts, int maxResponseToken, float temperature, float topP) {
         JsonArray messagesArray = new JsonArray();
 
-        // Add system prompts as the first system message (Google Gemini format)
-        if (!systemPrompts.isEmpty()) {
-            StringBuilder combinedSystemPrompts = new StringBuilder();
-            for (String prompt : systemPrompts) {
-                if (combinedSystemPrompts.length() > 0) {
-                    combinedSystemPrompts.append("\n");
-                }
-                combinedSystemPrompts.append(prompt);
-            }
+        // Build the combined system prompt with character information
+        String combinedSystemPrompt = buildCharacterPrompt(userCharacter, aiCharacter, prompts);
+        if (!combinedSystemPrompt.isEmpty()) {
             JsonObject systemMessage = new JsonObject();
             systemMessage.addProperty("role", "system");
-            systemMessage.addProperty("content", combinedSystemPrompts.toString());
+            systemMessage.addProperty("content", combinedSystemPrompt);
             messagesArray.add(systemMessage);
         }
 
