@@ -27,14 +27,14 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:ems="10"
-            android:hint="username" />
+            android:hint="gmail" />
 
         <EditText
             android:id="@+id/editTextPassword"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:ems="10"
-            android:hint="password"
+            android:hint="mật khẩu"
             android:inputType="textPassword" />
 
         <EditText
@@ -42,14 +42,14 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:ems="10"
-            android:hint="confirm password"
+            android:hint="xác nhận mật khẩu"
             android:inputType="textPassword" />
 
         <CheckBox
             android:id="@+id/checkBox_save_login"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="remember login" />
+            android:text="lưu đăng nhập" />
 
         <Button
             android:id="@+id/button_confirm"

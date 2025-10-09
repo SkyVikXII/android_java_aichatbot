@@ -13,7 +13,7 @@
             android:id="@+id/editTextPromptName"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Prompt Name" />
+            android:hint="Tên Lệnh hệ thống" />
     </com.google.android.material.textfield.TextInputLayout>
 
     <com.google.android.material.textfield.TextInputLayout
@@ -26,7 +26,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="top"
-            android:hint="Prompt Content"
+            android:hint="Nội dung của lệnh hệ thống"
             android:inputType="textMultiLine"
             android:lines="6" />
     </com.google.android.material.textfield.TextInputLayout>
@@ -63,7 +63,7 @@
             android:layout_height="wrap_content"
             android:layout_marginEnd="8dp"
             android:layout_weight="1"
-            android:text="Cancel" />
+            android:text="Hủy" />
 
         <Button
             android:id="@+id/buttonSavePrompt"
@@ -71,6 +71,6 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             android:layout_weight="1"
-            android:text="Save" />
+            android:text="Lưu" />
     </LinearLayout>
 </LinearLayout>

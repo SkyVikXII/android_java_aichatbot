@@ -3,6 +3,6 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
         android:id="@+id/action_reset_chat"
-        android:title="Reset Chat"
+        android:title="Đặt lại"
         app:showAsAction="never" />
 </menu>

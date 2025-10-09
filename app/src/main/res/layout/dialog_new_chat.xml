@@ -13,7 +13,7 @@
             android:id="@+id/editTextNewChatName"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Chat Name" />
+            android:hint="Tên" />
     </com.google.android.material.textfield.TextInputLayout>
 
     <com.google.android.material.textfield.TextInputLayout
@@ -27,14 +27,14 @@
             android:layout_height="wrap_content"
             android:inputType="textMultiLine"
             android:minLines="6"
-            android:hint="Description (Optional)" />
+            android:hint="Mô tả" />
     </com.google.android.material.textfield.TextInputLayout>
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        android:text="Select Your Character"/>
+        android:text="Chọn nhân vật đóng vai"/>
     <Spinner
         android:id="@+id/spinnerUserCharacter"
         android:layout_width="match_parent"
@@ -44,7 +44,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:text="Select AI Character"/>
+        android:text="Nhân vật AI sẽ sử dụng"/>
     <Spinner
         android:id="@+id/spinnerAiCharacter"
         android:layout_width="match_parent"
@@ -62,7 +62,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:layout_marginEnd="8dp"
-            android:text="Cancel" />
+            android:text="Hủy" />
 
         <Button
             android:id="@+id/buttonCreateNewChat"
@@ -70,7 +70,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:layout_marginStart="8dp"
-            android:text="Create" />
+            android:text="Lưu" />
     </LinearLayout>
 
 </LinearLayout>

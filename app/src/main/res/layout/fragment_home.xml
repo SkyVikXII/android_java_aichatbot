@@ -11,54 +11,54 @@
             android:gravity="center"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Gioi Thieu"/>
+            android:text="Giới Thiệu Ứng Dụng"/>
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="la mot ung dung cho phep nguoi dung nhap vai, duoc tao ra boi AI"/>
+            android:text="Đây là ứng dụng cho phép bạn trò chuyện với AI bằng cách nhập vai nhân vật."/>
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="ban co the bat dau bang viec tao ra nhan vat, sau do tao 1 cuoc tro chuyen voi AI bang nhan vat da tao. ban co the bat dau bang cach chon vao muc menu o phia duoi"/>
+            android:text="Để bắt đầu chọn menu ở phía dưới để bắt đầu. Tạo nhân vật trước, sau đó bắt đầu trò chuyện với AI bằng nhân vật đó."/>
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="ung dung co ho tro cac chuc nang cho phep nguoi dung tuy chinh cac mo hinh AI neu ban muon, viec cau hinh yeu cau ban co 1 so kien thuc nhat dinh, nhung neu ban khong muon thi van co the su dung nhu binh thuong"/>
+            android:text="Ứng dụng cho phép tùy chỉnh mô hình AI nếu bạn muốn. Nếu không rành về kỹ thuật, bạn vẫn có thể sử dụng bình thường."/>
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="cac mo hinh ngon nhu lon va nha cung cap dich vu cua chung, co the bao tri hoac tam dung hoat dong 1 so mo hinh, nen khong han chung se hoat dong 100%"/>
+            android:text="Các mô hình AI có thể bảo trì hoặc tạm ngừng hoạt động, nên đôi khi có thể không hoạt động 100%."/>
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="voi kha nang tuy chinh cao cua ung dung cho phep nguoi dung su dung mo hinh ngon ngu cuc bo, ban can dich chi (endpoint) va api key"/>
+            android:text="Ứng dụng hỗ trợ kết nối với mô hình AI local trên máy tính của bạn. Bạn cần endpoint và API key để kết nối."/>
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="end point : dia chi dung de gui du lieu len mo hinh ngon ngu lon"/>
+            android:text="Endpoint: Địa chỉ kết nối đến mô hình AI"/>
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="API KEY : chia khoa de truy cap den mo hinh ngon nhu lon"/>
+            android:text="API KEY: Mã bảo mật để truy cập mô hình AI"/>
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="de them ket noi den mo hinh ngon ngu ban co the kiem o nha cung cap dich vu, doi voi chay cuc bo tren PC vui long doc huong dan chi tiet trong tai lieu thuong endpoint se co dich chi nhu"/>
+            android:text="Để kết nối với mô hình AI, bạn cần lấy thông tin từ nhà cung cấp dịch vụ. Ví dụ endpoint cho các dịch vụ phổ biến:"/>
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="localhost\nhttp://localhost:5000/v1/chat/completions\nhttp://ip:port/v1/chat/completions\nip : dia chi ip cua server\nport: cong cua server"/>
+            android:text="Chạy local trên máy tính: http://localhost:5000/v1/chat/completions"/>
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Openai\nhttps://api.openai.com/v1/chat/completions"/>
+            android:text="OpenAI: https://api.openai.com/v1/chat/completions"/>
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Deepseek\nhttps://api.deepseek.com/chat/completions"/>
+            android:text="Deepseek: https://api.deepseek.com/chat/completions"/>
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Luu y : ban khong the dung endpoint url cua open ai de dung mo hinh ngon cua cua deepseek, open ai khong co mo hinh ngon nhu cua deepseek va se bao loi"/>
+            android:text="Lưu ý: Không dùng endpoint của dịch vụ này cho dịch vụ khác. Mỗi dịch vụ có endpoint riêng và sẽ báo lỗi nếu dùng sai."/>
     </LinearLayout>
 </ScrollView>

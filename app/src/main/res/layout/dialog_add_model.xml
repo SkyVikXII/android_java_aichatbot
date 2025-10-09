@@ -17,7 +17,7 @@
                 android:id="@+id/editTextModelName"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Model Name" />
+                android:hint="Tên mô hình" />
         </com.google.android.material.textfield.TextInputLayout>
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
@@ -28,7 +28,7 @@
                 android:id="@+id/editTextApiModelId"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="API Model ID (e.g., openai/gpt-3.5-turbo)" />
+                android:hint="Mô hình id" />
         </com.google.android.material.textfield.TextInputLayout>
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
@@ -39,7 +39,7 @@
                 android:id="@+id/editTextModelDescription"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Description" />
+                android:hint="Mô tả" />
         </com.google.android.material.textfield.TextInputLayout>
         <LinearLayout
             android:orientation="horizontal"
@@ -154,7 +154,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="8dp"
                 android:layout_weight="1"
-                android:text="Cancel" />
+                android:text="Hủy" />
 
             <Button
                 android:id="@+id/buttonSaveModel"
@@ -162,7 +162,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
                 android:layout_weight="1"
-                android:text="Save" />
+                android:text="Lưu" />
         </LinearLayout>
     </LinearLayout>
 </ScrollView>
