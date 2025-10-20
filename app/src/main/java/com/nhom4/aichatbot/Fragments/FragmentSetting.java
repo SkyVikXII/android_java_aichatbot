@@ -9,6 +9,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -119,6 +120,29 @@ public class FragmentSetting extends Fragment implements EndpointAdapter.OnEndpo
         recyclerViewPrompts = view.findViewById(R.id.recyclerView_SettingPrompt);
         recyclerViewPrompts.setLayoutManager(new LinearLayoutManager(getContext()));
         view.findViewById(R.id.buttonSetting_addPrompt).setOnClickListener(v -> showAddEditPromptDialog(null));
+
+        //help dialog
+        View buttonhelp_endpoint = view.findViewById(R.id.button_SettingHelp_Endpoint);
+        buttonhelp_endpoint.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showHelpEndpointDialog();
+            }
+        });
+        View buttonhelp_model = view.findViewById(R.id.button_SettingHelp_Model);
+        buttonhelp_model.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showHelpModelDialog();
+            }
+        });
+        View buttonhelp_prompt = view.findViewById(R.id.button_SettingHelp_Prompt);
+        buttonhelp_prompt.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showHelpPromptDialog();
+            }
+        });
     }
 
     private void loadAllDataFromSqlite() {
@@ -378,7 +402,82 @@ public class FragmentSetting extends Fragment implements EndpointAdapter.OnEndpo
         });
         dialog.show();
     }
+    private void showHelpEndpointDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_help_endpoint, null);
+        builder.setView(dialogView);
+        AlertDialog dialog = builder.create();
 
+        TextView name = dialogView.findViewById(R.id.textview_dialog_help_endpoint);
+        name.append("Endpoint là 1 địa chỉ để kết nối đến 1 nhà cung cấp dịch vu mô hình ngôn ngữ lớn (LLM), bạn phải có API để kết nối đến máy chủ\n");
+        name.append("Ứng dụng hỗ trợ 2 end point phòng trường hợp bảo trì hoặc vấn đề đột xuất phát sinh\n");
+        name.append("Bạn có thể dùng open router cùng với DeepSeek: DeepSeek V3 0324(free) và OpenAI: gpt-oss-20b (free)\n");
+        name.append("Bạn có thể dùng google và Google: gemini 2.0 flash\n");
+        name.append("Không dùng Open Router với Google: gemini 2.0 flash vì Open Router không có model với mã định danh đó\n");
+        View cancel = dialogView.findViewById(R.id.button_dialog_help_endpoint_close);
+
+        cancel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+            }
+        });
+        dialog.show();
+    }
+    private void showHelpModelDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_help_model, null);
+        builder.setView(dialogView);
+        AlertDialog dialog = builder.create();
+
+        TextView name = dialogView.findViewById(R.id.textview_dialog_help_model);
+        name.append("Cơ bản về các thông số kỹ thuật của model\n");
+        name.append("Tên Mô Hình (Model) phần này người dùng tự đặt\n");
+        name.append("Mô hình Id: mã định danh của mô hình, mỗi mô hình có mã định nhanh khác nhau và phải khớp với mã định danh được quy định bởi nhà cung cấp dịch vụ (bắc buộc)\n");
+        name.append("Mô tả, Phần này không bắt buộc\n");
+        name.append("Các Thông Số\n");
+        name.append("Context Length: Giới hạn số token mà Mô hình có thể xử lý càng nhiều đồng nghĩa với việc mô hình có thể chứa thông tin lớn, xem giới hạn context được quy định ở nhà cung cấp dịch vụ của mô hình đó, tốt nhất giá trị phải nhỏ hơn thông số của nhà cung cấp dịch vụ đề ra\n");
+        name.append("Max Tokens: Độ dài mà mô hình có thể phản hồi, ví dụ giá trị lớn mô hình có thể phản hồi như 1 đoạn văn, giá trị nhỏ mô hình chỉ có thể trả lời ngắn, nhưng tùy thuộc vào Lệnh hệ thống (system prompt), Không thể yêu cầu AI phản hồi bằng đoạn văn dài với token thấp được\n");
+        name.append("Token: AI không hiểu ngôn ngữ của con người, tất cả chữ đều được dịch sang token, tùy thuộc vào loại chữ mà có độ dài token khác nhau\n");
+        name.append("Các Thông Số Dưới này bạn có thể không cần chỉnh\n");
+        name.append("Temperature (Nhiệt độ)\n 0.0 đến 2.0 Temperature kiểm soát mức độ ngẫu nhiên/sáng tạo trong câu trả lời\n");
+        name.append("Top P (Nuclear Sampling)\n 0.0 đến 1.0 Top P giới hạn tập hợp từ khả thi dựa trên tích lũy xác suất\n");
+        name.append("Frequency Penalty (Phạt tần suất)\n -2.0 đến 2.0 Giảm xác suất của các từ xuất hiện thường xuyên trong văn bản\n");
+        name.append("Presence Penalty (Phạt sự hiện diện)\n -2.0 đến 2.0 Giảm xác suất của các từ đã xuất hiện trong văn bản\n");
+        name.append("Google không hỗ trợ Frequency Penalty (Phạt tần suất) và Presence Penalty (Phạt sự hiện diện)");
+        View cancel = dialogView.findViewById(R.id.button_dialog_help_model_close);
+
+        cancel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+            }
+        });
+        dialog.show();
+    }
+    private void showHelpPromptDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_help_prompt, null);
+        builder.setView(dialogView);
+        AlertDialog dialog = builder.create();
+
+        TextView name = dialogView.findViewById(R.id.textview_dialog_help_prompt);
+        name.append("Lệnh Hệ Thống (System Prompt)\n");
+        name.append("Nơi mà bạn có thể yêu cầu những gì AI nên làm hoặc không được làm\n");
+        name.append("Bạn có thể yêu cầu phản hồi ngắn, hoặc yêu cầu phản hồi bằng những ngôn ngữ khác nhau\n");
+        name.append("Hoặc là giả lập 1 thế giới bằng cách đưa vào những ngữ cảnh khác nhau\n");
+        name.append("Bạn có thể đặt tình huống là buổi phỏng vấn và AI sẽ là người phỏng vấn bạn\n");
+        name.append("Sự sáng tạo là vô hạn, \n");
+        View cancel = dialogView.findViewById(R.id.button_dialog_help_prompt_close);
+
+        cancel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
+            }
+        });
+        dialog.show();
+    }
     @Override
     public void onEditClick(Prompt prompt) { showAddEditPromptDialog(prompt); }
 

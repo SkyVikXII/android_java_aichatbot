@@ -89,7 +89,7 @@ public class ModelDbHelper {
         defaultModel2.setFrequency_penalty("0.0");
         defaultModel2.setPresence_penalty("0.0");
         defaultModel2.setDefault(true);
-        defaultModel2.setActive(true);
+        defaultModel2.setActive(false);
         defaultModel2.setApi_model_id("openai/gpt-oss-20b:free");
         if(this.getModelById(defaultModel2.getId()) != null){
             if(this.getModelById(defaultModel2.getId()).isActive()){
@@ -112,7 +112,7 @@ public class ModelDbHelper {
         defaultModel3.setFrequency_penalty("0.0");
         defaultModel3.setPresence_penalty("0.0");
         defaultModel3.setDefault(true);
-        defaultModel3.setActive(false);
+        defaultModel3.setActive(true);
         defaultModel3.setApi_model_id("gemini-2.0-flash");
         if(this.getModelById(defaultModel3.getId()) != null){
             if(this.getModelById(defaultModel3.getId()).isActive()){
