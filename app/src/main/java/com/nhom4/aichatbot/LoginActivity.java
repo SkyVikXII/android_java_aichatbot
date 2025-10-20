@@ -23,6 +23,7 @@ public class LoginActivity extends AppCompatActivity {
     Button button_toggle;
     int MODE=1;
     FirebaseAuthHelper authHelper = new FirebaseAuthHelper();
+    SharedPreferencesHelper sharedPreferencesHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -81,11 +82,11 @@ public class LoginActivity extends AppCompatActivity {
             if (task.isSuccessful()) {
                 Toast.makeText(LoginActivity.this, "Đăng nhập thành công", Toast.LENGTH_SHORT).show();
                 if(checkBox_save_login.isChecked()){
-                    //todo: save login
-                    movetomain();
+                    sharedPreferencesHelper.saveUserLogin(username, password, true);
                 }else{
-                    movetomain();
+                    sharedPreferencesHelper.saveUserLogin("", "", false);
                 }
+                movetomain();
             } else {
                 Toast.makeText(LoginActivity.this, "Đăng nhập thất bại: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
             }
@@ -121,6 +122,7 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void ints() {
+        sharedPreferencesHelper = new SharedPreferencesHelper(this);
         txt_title = findViewById(R.id.TextView_title);
         editTextUsername = findViewById(R.id.editTextUsername);
         editTextPassword = findViewById(R.id.editTextPassword);
@@ -131,6 +133,16 @@ public class LoginActivity extends AppCompatActivity {
         //1 DN,2 DK
         mode();
     }
+    private void loadSavedCredentials() {
+        if (sharedPreferencesHelper.isSaveLoginEnabled() && MODE==1) {
+            String savedUsername = sharedPreferencesHelper.getSavedUsername();
+            String savedPassword = sharedPreferencesHelper.getSavedPassword();
+
+            editTextUsername.setText(savedUsername);
+            editTextPassword.setText(savedPassword);
+            checkBox_save_login.setChecked(true);
+        }
+    }
     private void mode() {
         switch(MODE){
             case 1:
@@ -139,6 +151,7 @@ public class LoginActivity extends AppCompatActivity {
                 checkBox_save_login.setVisibility(View.VISIBLE);
                 button_confirm.setText("Đăng nhập");
                 button_toggle.setText("Đăng kí tài khoảng");
+                loadSavedCredentials();
                 break;
             case 2:
                 txt_title.setText("Đăng ký");

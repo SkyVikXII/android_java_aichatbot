@@ -101,8 +101,8 @@ public class PromptDbHelper {
         // Default Prompt 2 (Example)
         Prompt defaultPrompt2 = new Prompt();
         defaultPrompt2.setId("prompt_default_1");
-        defaultPrompt2.setName("Creative Writing Prompt");
-        defaultPrompt2.setContent("You are a creative writing assistant. Generate compelling narratives and vivid descriptions.");
+        defaultPrompt2.setName("Ngôn ngữ đầu ra tiếng việt");
+        defaultPrompt2.setContent("##mọi chữ được AI xuất ra phải dùng ngôn ngữ Tiếng Việt\n##Phản hồi của AI (LLM) phải dùng Tiếng Việt");
         defaultPrompt2.setType(2); // 2 for End Injection
         defaultPrompt2.setDefault(true);
         defaultPrompt2.setActive(false);
