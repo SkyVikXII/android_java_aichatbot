@@ -46,6 +46,10 @@ public class LoginActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 MODE=MODE==1?2:1;
+                if (sharedPreferencesHelper.isSaveLoginEnabled() && MODE==2) {
+                    editTextUsername.setText("");
+                    editTextPassword.setText("");
+                }
                 mode();
             }
         });
@@ -115,8 +119,7 @@ public class LoginActivity extends AppCompatActivity {
                 mode();
                 Toast.makeText(LoginActivity.this, "Đăng ký thành công", Toast.LENGTH_SHORT).show();
             } else {
-                Toast.makeText(LoginActivity.this, "Đăng ký thất bại: " +
-                        task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(LoginActivity.this, "Đăng ký thất bại: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }
