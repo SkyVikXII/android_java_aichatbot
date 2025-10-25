@@ -26,7 +26,7 @@ public class ChatViewHolder extends RecyclerView.ViewHolder {
     public void bind(Chat chat) {
         textViewName.setText(chat.getName());
         textViewDescription.setText(chat.getDescription());
-        textViewDateCreate.setText("Created: " + chat.getDateCreate());
-        textViewDateUpdate.setText("Updated: " + chat.getDateUpdate());
+        textViewDateCreate.setText("Ngày tạo :"+chat.getDateCreate());
+        textViewDateUpdate.setText("Ngày sửa :"+chat.getDateUpdate());
     }
 }

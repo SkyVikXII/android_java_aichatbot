@@ -46,7 +46,7 @@
             <Button
                 android:layout_marginHorizontal="8dp"
                 android:id="@+id/buttonSetting_addEndpoint"
-                android:text="Thêm Endpoint"
+                android:text="Thêm Địa chỉ url của bên cung cấp"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"/>
             <androidx.cardview.widget.CardView
@@ -84,7 +84,7 @@
             <Button
                 android:id="@+id/buttonSetting_addModel"
                 android:layout_marginHorizontal="8dp"
-                android:text="Thêm Model"
+                android:text="Thêm Mô hình"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"/>
             <androidx.cardview.widget.CardView

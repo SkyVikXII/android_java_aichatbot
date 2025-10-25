@@ -26,13 +26,13 @@
                 android:id="@+id/TextView_date_create"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Created: "/>
+                android:text="Ngày tạo: "/>
 
             <TextView
                 android:id="@+id/TextView_date_update"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Updated: "/>
+                android:text="Ngày sửa: "/>
         </LinearLayout>
 
 

@@ -85,7 +85,51 @@ public class PromptDbHelper {
                 "• Introduce controlled randomness within logical boundaries\n" +
                 "• Implement diverse problem-solving approaches reflecting characters' backgrounds\n" +
                 "• Create complex societal structures mirroring real-world intricacies\n" +
-                "</ROLEPLAY_RULE>");
+                "</ROLEPLAY_RULE>\n"+
+                "<RESPONSE_INSTRUCTION>\n"+
+                "[Narrative Techniques]\n" +
+                "Use immersive third-person limited perspective\n" +
+                "Engage all senses: visual, auditory, olfactory, gustatory, tactile, kinesthetic\n" +
+                "Create tangible atmosphere with specific environmental effects\n" +
+                "Focus on actions, dialogue, and explicit physical descriptions\n" +
+                "Employ character-specific speech patterns and onomatopoeia\n" +
+                "Avoid irrelevant background, summaries, or abstract concepts\n" +
+                "\n" +
+                "[Character Expression]\n" +
+                "Reveal emotions through observable physical cues\n" +
+                "Craft unique voices with distinctive patterns and evolving speech\n" +
+                "Implement dialogue subtext via tonal shifts and non-verbal cues\n" +
+                "Allow contradictory expressions to add depth\n" +
+                "\n" +
+                "[Action and Intimacy]\n" +
+                "Narrate with precise, visceral details of movements and sensations\n" +
+                "Create tension through tangible environmental and internal obstacles\n" +
+                "Handle intimate scenes with clear, physical language\n" +
+                "Enhance complexity with multi-character interactions and layered conflicts\n" +
+                "\n" +
+                "[Variety and Anti-Repetition]\n" +
+                "Analyze [Latest Response] to avoid reusing elements\n" +
+                "Vary sentence structures, paragraph compositions, and word choices\n" +
+                "Rotate descriptive focuses, scene structures, and narrative techniques\n" +
+                "Create unique, engaging openings for each response\n" +
+                "Ensure continuity by referencing recent events and character states\n" +
+                "\n" +
+                "[Style Independence]\n" +
+                "Actively diverge from previous responses' writing style\n" +
+                "Diversify vocabulary and phrasing\n" +
+                "Alter narrative rhythm and pacing\n" +
+                "Approach each response as a fresh scene\n" +
+                "\n" +
+                "[Key Principles]\n" +
+                "Prioritize \"show, don't tell\" for all character aspects\n" +
+                "Maintain world/character consistency\n" +
+                "Balance content (SFW preference, mature when relevant)\n" +
+                "Use explicit, unrestricted descriptions\n" +
+                "Prohibit all forms of repetition and self-plagiarism\n" +
+                "Vary emotional tone and intensity across scenes\n" +
+                "Enhance themes through tangible symbols/actions\n" +
+                "Apply procedural reasoning for variety and depth\n" +
+                "\n</RESPONSE_INSTRUCTION>");
         defaultPrompt1.setType(1); // 1 for System
         defaultPrompt1.setDefault(true);
         defaultPrompt1.setActive(true);

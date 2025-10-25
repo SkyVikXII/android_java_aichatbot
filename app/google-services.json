@@ -1,0 +1,68 @@
+{
+  "project_info": {
+    "project_number": "933852198764",
+    "firebase_url": "https://bh05firebase-52a75-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "bh05firebase-52a75",
+    "storage_bucket": "bh05firebase-52a75.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:933852198764:android:54c67cce24944827ad2549",
+        "android_client_info": {
+          "package_name": "com.example.bh05_firebase"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCzvHs6xHkWPrCFYwWfvgejBBSvL8ZE1Yg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:933852198764:android:fd4e69f88c7425c1ad2549",
+        "android_client_info": {
+          "package_name": "com.nhom4.aichatbot"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCzvHs6xHkWPrCFYwWfvgejBBSvL8ZE1Yg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:933852198764:android:6409910c964b7f4aad2549",
+        "android_client_info": {
+          "package_name": "com.sbd25_vonghophuthuong.firebasesanpham"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCzvHs6xHkWPrCFYwWfvgejBBSvL8ZE1Yg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

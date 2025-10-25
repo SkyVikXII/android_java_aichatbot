@@ -65,6 +65,15 @@ public class EndpointDbHelper {
         cursor.close();
         return list;
     }
+    public List<Endpoint> getActiveEndpoints() {
+        List<Endpoint> list = new ArrayList<>();
+        Cursor cursor = db.getdata("SELECT * FROM " + TABLE_ENDPOINTS+" WHERE "+KEY_IS_ACTIVE+" = 1");
+        while (cursor.moveToNext()) {
+            list.add(cursorToEndpoint(cursor));
+        }
+        cursor.close();
+        return list;
+    }
 
     public Endpoint getEndpointById(String endpointId) {
         Endpoint endpoint = null;

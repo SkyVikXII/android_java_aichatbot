@@ -24,7 +24,7 @@ public class CharacterViewHolder extends RecyclerView.ViewHolder {
 
     public void bind(Character character) {
         textViewName.setText(character.getName());
-        textViewDateCreate.setText("Created: " + character.getDatecreate());
-        textViewDateUpdate.setText("Updated: " + character.getDateupdate());
+        textViewDateCreate.setText("Ngày tạo :"+character.getDatecreate());
+        textViewDateUpdate.setText("Ngày sửa :"+character.getDateupdate());
     }
 }
