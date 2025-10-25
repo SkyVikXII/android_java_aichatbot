@@ -15,6 +15,8 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.nhom4.aichatbot.Firebase.FirebaseAuthHelper;
+
 public class LoginActivity extends AppCompatActivity {
     TextView txt_title;
     EditText editTextUsername, editTextPassword, editTextPassword_confirm;
