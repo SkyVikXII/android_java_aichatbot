@@ -57,7 +57,7 @@ public class ChatActivity extends AppCompatActivity implements ApiCall.ApiRespon
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
+        //EdgeToEdge.enable(this);
         setContentView(R.layout.activity_chat);
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.chat), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
@@ -98,6 +98,7 @@ public class ChatActivity extends AppCompatActivity implements ApiCall.ApiRespon
         buttonSend.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
                 sendMessage();
             }
         });
@@ -171,22 +172,23 @@ public class ChatActivity extends AppCompatActivity implements ApiCall.ApiRespon
 
     private void sendMessage() {
         String messageText = editTextMessage.getText().toString().trim();
-        if (messageText.isEmpty()) {
+        int messageSize = currentChat.getMessages().size();
+        if(messageText.isEmpty()&&currentChat.getMessages()!=null && messageSize!=0){
+            if(currentChat.getMessages().get(messageSize-1).getRole().equals(currentChat.getCharacterUser().getId())){
+                messageText = currentChat.getMessages().get(messageSize -1).getContent();
+            }
+        }else if (messageText.isEmpty()) {
+            Toast.makeText(this, "Vui lòng nhập tin nhắn trước khi gửi.", Toast.LENGTH_SHORT).show();
             return;
+        }else{
+            Message userMessage = new Message(UUID.randomUUID().toString(), new Date(), currentChat.getCharacterUser().getId(), messageText);
+            currentChat.getMessages().add(userMessage);
+            messageAdapter.notifyItemInserted(currentChat.getMessages().size() - 1);
+            recyclerViewMessages.scrollToPosition(currentChat.getMessages().size() - 1);
+            editTextMessage.setText("");
+            chatDbHelper.updateChat(currentChat);
+            updateChatInFirebase();
         }
-
-
-        Message userMessage = new Message(UUID.randomUUID().toString(), new Date(), currentChat.getCharacterUser().getId(), messageText);
-        currentChat.getMessages().add(userMessage);
-        messageAdapter.notifyItemInserted(currentChat.getMessages().size() - 1);
-        recyclerViewMessages.scrollToPosition(currentChat.getMessages().size() - 1);
-        editTextMessage.setText("");
-
-
-        chatDbHelper.updateChat(currentChat);
-        updateChatInFirebase();
-
-
         getAiResponse(messageText);
     }
 
@@ -200,15 +202,10 @@ public class ChatActivity extends AppCompatActivity implements ApiCall.ApiRespon
             onFailure("Lỗi: Không tìm thấy Endpoint hoặc Model đang hoạt động trong cài đặt.");
             return;
         }
-
+        buttonSend.setClickable(false);
         apiCall.makeApiCall(
-                activeEndpoint.getEndpoint_url(),
-                activeEndpoint.getAPI_KEY(),
-                activeModel.getApi_model_id(),
-                Integer.parseInt(activeModel.getMax_tokens()),
-                Float.parseFloat(activeModel.getTemperature()),
-                Float.parseFloat(activeModel.getFrequency_penalty()),
-                Float.parseFloat(activeModel.getTop_p()),
+                activeEndpoint,
+                activeModel,
                 userMessageText,
                 currentChat.getMessages(),
                 currentChat.getCharacterUser(),
@@ -227,12 +224,16 @@ public class ChatActivity extends AppCompatActivity implements ApiCall.ApiRespon
             updateChatInFirebase();
             messageAdapter.notifyItemInserted(currentChat.getMessages().size() - 1);
             recyclerViewMessages.scrollToPosition(currentChat.getMessages().size() - 1);
+            buttonSend.setClickable(true);
         });
     }
 
     @Override
     public void onFailure(String errorMessage) {
-        runOnUiThread(() -> Toast.makeText(ChatActivity.this, errorMessage, Toast.LENGTH_LONG).show());
+        runOnUiThread(() -> {
+            Toast.makeText(ChatActivity.this, errorMessage, Toast.LENGTH_LONG).show();
+            buttonSend.setClickable(true);
+        });
     }
 
     // Helper methods to get active settings
