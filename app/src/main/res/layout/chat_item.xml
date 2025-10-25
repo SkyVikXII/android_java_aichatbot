@@ -33,13 +33,13 @@
                 android:id="@+id/textViewChatDatecreate"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Created: "/>
+                android:text="Ngày tạo: "/>
 
             <TextView
                 android:id="@+id/textViewChatDateupdate"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Updated: "/>
+                android:text="Ngày sửa: "/>
 
         </LinearLayout>
 

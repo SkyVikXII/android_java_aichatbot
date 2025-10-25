@@ -47,8 +47,8 @@ public class CharacterDbHelper {
         // Default Character 1
         Character defaultChar1 = new Character();
         defaultChar1.setId("char_default_0");
-        defaultChar1.setName("Default Assistant");
-        defaultChar1.setDescription("A helpful and friendly assistant.");
+        defaultChar1.setName("Trợ lý AI");
+        defaultChar1.setDescription("Một trợ lý hữu ích và thân thiện.");
         String currentDate = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.getDefault()).format(new java.util.Date());
         defaultChar1.setDatecreate(currentDate);
         defaultChar1.setDateupdate(currentDate);
@@ -58,8 +58,8 @@ public class CharacterDbHelper {
         // Default Character 2
         Character defaultChar2 = new Character();
         defaultChar2.setId("char_default_1");
-        defaultChar2.setName("Roleplay Partner");
-        defaultChar2.setDescription("Your dedicated roleplay companion.");
+        defaultChar2.setName("Người nhập vai");
+        defaultChar2.setDescription("Người bạn đồng hành nhập vai tận tâm của bạn.");
         defaultChar2.setDatecreate(currentDate);
         defaultChar2.setDateupdate(currentDate);
         defaultChar2.setDefault(true);
