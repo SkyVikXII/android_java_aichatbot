@@ -3,13 +3,10 @@ package com.nhom4.aichatbot.Fragments;
 import android.app.AlertDialog;
 import android.os.Bundle;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -31,6 +28,9 @@ import com.nhom4.aichatbot.Adapter.PromptAdapter;
 import com.nhom4.aichatbot.Database.EndpointDbHelper;
 import com.nhom4.aichatbot.Database.ModelDbHelper;
 import com.nhom4.aichatbot.Database.PromptDbHelper;
+import com.nhom4.aichatbot.Firebase.EndpointFirebaseHelper;
+import com.nhom4.aichatbot.Firebase.ModelFirebaseHelper;
+import com.nhom4.aichatbot.Firebase.PromptFirebaseHelper;
 import com.nhom4.aichatbot.Models.Endpoint;
 import com.nhom4.aichatbot.Models.Model;
 import com.nhom4.aichatbot.Models.Prompt;
@@ -48,6 +48,11 @@ public class FragmentSetting extends Fragment implements EndpointAdapter.OnEndpo
     private EndpointDbHelper endpointDbHelper;
     private ModelDbHelper modelDbHelper;
     private PromptDbHelper promptDbHelper;
+
+    private ModelFirebaseHelper modelFirebaseHelper;
+    private EndpointFirebaseHelper endpointFirebaseHelper;
+    private PromptFirebaseHelper promptFirebaseHelper;
+
     private DatabaseReference firebaseEndpointsRef, firebaseModelsRef, firebasePromptsRef, firebaseSystemEndpointsRef;
     int activeEndpoint;
 
@@ -57,6 +62,10 @@ public class FragmentSetting extends Fragment implements EndpointAdapter.OnEndpo
         endpointDbHelper = new EndpointDbHelper(getContext());
         modelDbHelper = new ModelDbHelper(getContext());
         promptDbHelper = new PromptDbHelper(getContext());
+
+        modelFirebaseHelper = new ModelFirebaseHelper();
+        endpointFirebaseHelper = new EndpointFirebaseHelper();
+        promptFirebaseHelper = new PromptFirebaseHelper();
 
         String currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         DatabaseReference userRef = FirebaseDatabase.getInstance().getReference().child("users").child(currentUserId);
@@ -77,12 +86,57 @@ public class FragmentSetting extends Fragment implements EndpointAdapter.OnEndpo
         super.onViewCreated(view, savedInstanceState);
         setupAllViews(view);
         loadAllDataFromSqlite();
-        syncSystemEndpoints();
-        ArrayList<Endpoint> activeEndpoints = new ArrayList<Endpoint>(endpointDbHelper.getActiveEndpoints());
-        activeEndpoint = activeEndpoints.size();
-        syncFirebaseEndpointdata();
-        syncFirebaseModeldata();
-        syncFirebasePromptdata();
+        syncAllData();
+        //syncSystemEndpoints();
+        //syncFirebaseEndpointdata();
+        //syncFirebaseModeldata();
+        //syncFirebasePromptdata();
+    }
+    private void syncAllData(){
+        modelFirebaseHelper.syncUserModels(modelDbHelper, new ModelFirebaseHelper.SyncCallback() {
+            @Override
+            public void onSuccess() {
+                loadModels();
+            }
+
+            @Override
+            public void onError(String errorMessage) {
+                Toast.makeText(getContext(), "Không thể tải du lieu tu server", Toast.LENGTH_SHORT).show();
+            }
+        });
+        endpointFirebaseHelper.syncSystemEndpoints(endpointDbHelper, new EndpointFirebaseHelper.SyncCallback() {
+            @Override
+            public void onSuccess() {
+                loadEndpoints();
+            }
+
+            @Override
+            public void onError(String errorMessage) {
+                Toast.makeText(getContext(), "Không thể tải du lieu tu server", Toast.LENGTH_SHORT).show();
+            }
+        });
+        endpointFirebaseHelper.syncUserEndpoints(endpointDbHelper, new EndpointFirebaseHelper.SyncCallback() {
+            @Override
+            public void onSuccess() {
+                loadEndpoints();
+            }
+
+            @Override
+            public void onError(String errorMessage) {
+                Toast.makeText(getContext(), "Không thể tải du lieu tu server", Toast.LENGTH_SHORT).show();
+            }
+        });
+        promptFirebaseHelper.syncUserPrompts(promptDbHelper, new PromptFirebaseHelper.SyncCallback() {
+            @Override
+            public void onSuccess() {
+                loadPrompts();
+            }
+
+            @Override
+            public void onError(String errorMessage) {
+                Toast.makeText(getContext(), "Không thể tải du lieu tu server", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     private void syncSystemEndpoints() {
