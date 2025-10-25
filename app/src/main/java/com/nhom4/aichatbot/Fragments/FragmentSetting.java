@@ -3,6 +3,8 @@ package com.nhom4.aichatbot.Fragments;
 import android.app.AlertDialog;
 import android.os.Bundle;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -19,8 +21,10 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.nhom4.aichatbot.Adapter.EndpointAdapter;
 import com.nhom4.aichatbot.Adapter.ModelAdapter;
 import com.nhom4.aichatbot.Adapter.PromptAdapter;
@@ -32,6 +36,7 @@ import com.nhom4.aichatbot.Models.Model;
 import com.nhom4.aichatbot.Models.Prompt;
 import com.nhom4.aichatbot.R;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class FragmentSetting extends Fragment implements EndpointAdapter.OnEndpointClickListener, ModelAdapter.OnModelClickListener, PromptAdapter.OnPromptClickListener {
@@ -44,6 +49,7 @@ public class FragmentSetting extends Fragment implements EndpointAdapter.OnEndpo
     private ModelDbHelper modelDbHelper;
     private PromptDbHelper promptDbHelper;
     private DatabaseReference firebaseEndpointsRef, firebaseModelsRef, firebasePromptsRef, firebaseSystemEndpointsRef;
+    int activeEndpoint;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -72,13 +78,18 @@ public class FragmentSetting extends Fragment implements EndpointAdapter.OnEndpo
         setupAllViews(view);
         loadAllDataFromSqlite();
         syncSystemEndpoints();
+        ArrayList<Endpoint> activeEndpoints = new ArrayList<Endpoint>(endpointDbHelper.getActiveEndpoints());
+        activeEndpoint = activeEndpoints.size();
+        syncFirebaseEndpointdata();
+        syncFirebaseModeldata();
+        syncFirebasePromptdata();
     }
 
     private void syncSystemEndpoints() {
-        firebaseSystemEndpointsRef.addValueEventListener(new com.google.firebase.database.ValueEventListener() {
+        firebaseSystemEndpointsRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull com.google.firebase.database.DataSnapshot dataSnapshot) {
-                for (com.google.firebase.database.DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                     Endpoint endpoint = snapshot.getValue(Endpoint.class);
                     if (endpoint != null) {
                         String systemId = "system_"+snapshot.getKey();
@@ -101,6 +112,109 @@ public class FragmentSetting extends Fragment implements EndpointAdapter.OnEndpo
             @Override
             public void onCancelled(@NonNull com.google.firebase.database.DatabaseError databaseError) {
                 Toast.makeText(getContext(), "Không thể tải các điểm cuối của hệ thống.", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+    private void syncFirebaseEndpointdata() {
+        firebaseEndpointsRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                    Endpoint endpoint = snapshot.getValue(Endpoint.class);
+                    if (endpoint != null) {
+                        String Id = snapshot.getKey();
+                        endpoint.setId(Id);
+                        if (endpointDbHelper.getEndpointById(Id) == null) {
+                            endpointDbHelper.addEndpoint(endpoint, true);
+                        } else {
+                            if(endpointDbHelper.getEndpointById(Id).isActive()){
+                                activeEndpoint++;
+                                if(activeEndpoint>1){
+                                    endpoint.setActive(false);
+                                }else{
+                                    endpoint.setActive(true);
+                                }
+                            }else{
+                                endpoint.setActive(false);
+                            }
+                            endpointDbHelper.updateEndpoint(endpoint, true);
+                            firebaseEndpointsRef.child(endpoint.getId()).setValue(endpoint);
+                        }
+                    }
+                }
+                loadEndpoints();
+            }
+
+            @Override
+            public void onCancelled(@NonNull com.google.firebase.database.DatabaseError databaseError) {
+                Toast.makeText(getContext(), "Không thể tải dữ liệu từ Firebase.", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+    private void syncFirebaseModeldata() {
+        firebaseModelsRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                int count = 0;
+                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                    Model model = snapshot.getValue(Model.class);
+                    if (model != null) {
+                        String Id = snapshot.getKey();
+                        model.setId(Id);
+                        if (modelDbHelper.getModelById(Id) == null) {
+                            modelDbHelper.addModel(model, true);
+                        } else {
+                            if(modelDbHelper.getModelById(Id).isActive()){
+                                model.setActive(true);
+                                count++;
+                                if(count>1){
+                                    model.setActive(false);
+                                }
+                            }else{
+                                model.setActive(false);
+                            }
+                            modelDbHelper.updateModel(model, true);
+                            firebaseModelsRef.child(model.getId()).setValue(model);
+                        }
+                    }
+                }
+                loadModels();
+            }
+
+            @Override
+            public void onCancelled(@NonNull com.google.firebase.database.DatabaseError databaseError) {
+                Toast.makeText(getContext(), "Không thể tải dữ liệu mô hình từ Firebase.", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+    private void syncFirebasePromptdata() {
+        firebasePromptsRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                    Prompt prompt = snapshot.getValue(Prompt.class);
+                    if (prompt != null) {
+                        String Id = snapshot.getKey();
+                        prompt.setId(Id);
+                        if (promptDbHelper.getPromptById(Id) == null) {
+                            promptDbHelper.addPrompt(prompt, true);
+                        } else {
+                            if(promptDbHelper.getPromptById(Id).isActive()){
+                                prompt.setActive(true);
+                            }else{
+                                prompt.setActive(false);
+                            }
+                            promptDbHelper.updatePrompt(prompt, true);
+                            firebasePromptsRef.child(prompt.getId()).setValue(prompt);
+                        }
+                    }
+                }
+                loadPrompts();
+            }
+
+            @Override
+            public void onCancelled(@NonNull com.google.firebase.database.DatabaseError databaseError) {
+                Toast.makeText(getContext(), "Không thể tải các lệnh hệ thống từ Firebase", Toast.LENGTH_SHORT).show();
             }
         });
     }

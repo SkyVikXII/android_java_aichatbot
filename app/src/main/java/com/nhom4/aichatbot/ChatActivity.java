@@ -8,9 +8,13 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.Toast;
 
+import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -53,7 +57,13 @@ public class ChatActivity extends AppCompatActivity implements ApiCall.ApiRespon
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_chat);
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.chat), (v, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+            return insets;
+        });
 
         String chatId = getIntent().getStringExtra("CHAT_ID");
         if (chatId == null) {
@@ -65,9 +75,6 @@ public class ChatActivity extends AppCompatActivity implements ApiCall.ApiRespon
         initViews();
         initHelpers();
         setupToolbar();
-
-        // This is not efficient for a real app, but works for this structure.
-        // A real app would use a single getChatById method.
         List<Chat> allChats = chatDbHelper.getAllChats();
         for(Chat chat : allChats) {
             if(chat.getId().equals(chatId)) {
@@ -113,8 +120,7 @@ public class ChatActivity extends AppCompatActivity implements ApiCall.ApiRespon
 
     private void updateChatInFirebase() {
         if (firebaseChatRef != null && currentChat != null) {
-            firebaseChatRef.setValue(currentChat)
-                    .addOnFailureListener(e -> Toast.makeText(ChatActivity.this, "Đồng bộ hóa cuộc trò chuyện lên Firebase thất bại", Toast.LENGTH_SHORT).show());
+            firebaseChatRef.setValue(currentChat).addOnFailureListener(e -> Toast.makeText(ChatActivity.this, "Đồng bộ hóa cuộc trò chuyện lên Firebase thất bại", Toast.LENGTH_SHORT).show());
         }
     }
 
