@@ -42,7 +42,7 @@ public class ModelFirebaseHelper {
                             // Handle active model logic
                             if (existingModel.isActive()) {
                                 activeCount++;
-                                model.setActive(activeCount <= 1); // Only first active model remains active
+                                model.setActive(activeCount <= 1);
                             } else {
                                 model.setActive(false);
                             }

@@ -33,17 +33,14 @@ public class ApiCall {
         this.client = new OkHttpClient();
         this.gson = new Gson();
     }
-    public void makeApiCall(Endpoint endpoint, Model model, String userMessage, List<Message> conversationHistory, Character userCharacter, Character aiCharacter, List<Prompt> prompts, ApiResponseListener listener) {
-        try {
-            int maxTokens = safeParseInt(model.getMax_tokens(), 1000);
-            float temperature = safeParseFloat(model.getTemperature(), 0.7f);
-            float topP = safeParseFloat(model.getTop_p(), 1.0f);
-            float frequencyPenalty = safeParseFloat(model.getFrequency_penalty(), 0.0f);
-
-            String apiType = determineApiType(endpoint.getEndpoint_url());
-
-            String systemPrompt = buildSystemPrompt(userCharacter, aiCharacter, prompts);
-            JsonArray messages = buildMessages(systemPrompt, userMessage, conversationHistory, userCharacter);
+    private Request createRequest(String url, String apiKey, RequestBody body) {
+        return new Request.Builder()
+                .url(url)
+                .post(body)
+                .addHeader("Authorization", "Bearer " + apiKey)
+                .addHeader("Content-Type", "application/json")
+                .build();
+    }
 /*
 curl "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions" \
 -H "Content-Type: application/json" \
@@ -55,6 +52,17 @@ curl "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions" 
     ]
     }'
 */
+    public void makeApiCall(Endpoint endpoint, Model model, String userMessage, List<Message> conversationHistory, Character userCharacter, Character aiCharacter, List<Prompt> prompts, ApiResponseListener listener) {
+        try {
+            int maxTokens = safeParseInt(model.getMax_tokens(), 1000);
+            float temperature = safeParseFloat(model.getTemperature(), 0.7f);
+            float topP = safeParseFloat(model.getTop_p(), 1.0f);
+            float frequencyPenalty = safeParseFloat(model.getFrequency_penalty(), 0.0f);
+
+            String apiType = determineApiType(endpoint.getEndpoint_url());
+
+            String systemPrompt = buildSystemPrompt(userCharacter, aiCharacter, prompts);
+            JsonArray messages = buildMessages(systemPrompt, userMessage, conversationHistory, userCharacter);
             RequestBody body = createRequestBody(
                     model.getApi_model_id(),
                     messages,
@@ -179,15 +187,6 @@ curl "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions" 
                 body.toString(),
                 MediaType.parse("application/json")
         );
-    }
-
-    private Request createRequest(String url, String apiKey, RequestBody body) {
-        return new Request.Builder()
-                .url(url)
-                .post(body)
-                .addHeader("Authorization", "Bearer " + apiKey)
-                .addHeader("Content-Type", "application/json")
-                .build();
     }
 
     private void executeRequest(Request request, String apiType, ApiResponseListener listener) {

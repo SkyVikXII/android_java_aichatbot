@@ -172,23 +172,32 @@ public class FragmentCharacter extends Fragment implements CharacterAdapter.OnCh
             dialog.setTitle("Add Character");
         }
 
-        buttonCancel.setOnClickListener(v -> dialog.dismiss());
-
-        buttonSave.setOnClickListener(v -> {
-            String name = editTextName.getText().toString().trim();
-            String description = editTextDescription.getText().toString().trim();
-
-            if (name.isEmpty() || description.isEmpty()) {
-                Toast.makeText(getContext(), "Tên và mô tả không được để trống", Toast.LENGTH_SHORT).show();
-                return;
+        buttonCancel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dialog.dismiss();
             }
+        });
 
-            if (isEditing) {
-                updateCharacter(character.getId(), name, description);
-            } else {
-                saveCharacter(name, description);
+        buttonSave.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String name = editTextName.getText().toString().trim();
+                String description = editTextDescription.getText().toString().trim();
+
+                if (name.isEmpty() || description.isEmpty()) {
+                    Toast.makeText(getContext(), "Tên và mô tả không được để trống", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                if (isEditing) {
+                    updateCharacter(character.getId(), name, description);
+                } else {
+                    saveCharacter(name, description);
+                }
+                dialog.dismiss();
+
             }
-            dialog.dismiss();
         });
     }
 
@@ -209,8 +218,12 @@ public class FragmentCharacter extends Fragment implements CharacterAdapter.OnCh
         Toast.makeText(getContext(), "Lưu nhân vật thành công", Toast.LENGTH_SHORT).show();
 
         if (isOnline && firebaseRef != null) {
-            firebaseRef.child(newCharacter.getId()).setValue(newCharacter)
-                    .addOnSuccessListener(aVoid -> characterFirebaseHelper.sqlite.markAsSynced(newCharacter.getId()));
+            firebaseRef.child(newCharacter.getId()).setValue(newCharacter).addOnSuccessListener(new OnSuccessListener<Void>() {
+                @Override
+                public void onSuccess(Void unused) {
+                    characterFirebaseHelper.sqlite.markAsSynced(newCharacter.getId());
+                }
+            });
         }
         loadDataFromSqlite();
     }
@@ -239,8 +252,12 @@ public class FragmentCharacter extends Fragment implements CharacterAdapter.OnCh
             Toast.makeText(getContext(), "Cập nhật nhân vật thành công", Toast.LENGTH_SHORT).show();
 
             if (isOnline && firebaseRef != null) {
-                firebaseRef.child(characterId).setValue(existingCharacter)
-                        .addOnSuccessListener(aVoid -> characterFirebaseHelper.sqlite.markAsSynced(characterId));
+                firebaseRef.child(characterId).setValue(existingCharacter).addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void unused) {
+                        characterFirebaseHelper.sqlite.markAsSynced(characterId);
+                    }
+                });
             }
             loadDataFromSqlite();
         }

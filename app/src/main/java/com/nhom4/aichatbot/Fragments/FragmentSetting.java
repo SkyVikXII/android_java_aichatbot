@@ -447,35 +447,38 @@ public class FragmentSetting extends Fragment implements EndpointAdapter.OnEndpo
         }
 
         dialogView.findViewById(R.id.buttonCancelModel).setOnClickListener(v -> dialog.dismiss());
-        saveButton.setOnClickListener(v -> {
-            String modelName = name.getText().toString().trim();
-            if (modelName.isEmpty()) {
-                Toast.makeText(getContext(), "Tên model không được để trống", Toast.LENGTH_SHORT).show();
-                return;
-            }
+        saveButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String modelName = name.getText().toString().trim();
+                if (modelName.isEmpty()) {
+                    Toast.makeText(getContext(), "Tên model không được để trống", Toast.LENGTH_SHORT).show();
+                    return;
+                }
 
-            Model modelToSave = (model == null) ? new Model() : model;
-            if (model == null) {
-                modelToSave.setId(generateId("model"));
-                modelToSave.setDefault(false);
-            }
-            modelToSave.setName(modelName);
-            modelToSave.setDescription(description.getText().toString().trim());
-            modelToSave.setContext_length(contextLength.getText().toString().trim());
-            modelToSave.setMax_tokens(maxTokens.getText().toString().trim());
-            modelToSave.setTemperature(temperature.getText().toString().trim());
-            modelToSave.setTop_p(topP.getText().toString().trim());
-            modelToSave.setFrequency_penalty(freqPenalty.getText().toString().trim());
-            modelToSave.setPresence_penalty(presPenalty.getText().toString().trim());
+                Model modelToSave = (model == null) ? new Model() : model;
+                if (model == null) {
+                    modelToSave.setId(generateId("model"));
+                    modelToSave.setDefault(false);
+                }
+                modelToSave.setName(modelName);
+                modelToSave.setDescription(description.getText().toString().trim());
+                modelToSave.setContext_length(contextLength.getText().toString().trim());
+                modelToSave.setMax_tokens(maxTokens.getText().toString().trim());
+                modelToSave.setTemperature(temperature.getText().toString().trim());
+                modelToSave.setTop_p(topP.getText().toString().trim());
+                modelToSave.setFrequency_penalty(freqPenalty.getText().toString().trim());
+                modelToSave.setPresence_penalty(presPenalty.getText().toString().trim());
 
-            if (model == null) {
-                modelFirebaseHelper.sqlite.addModel(modelToSave, true);
-            } else {
-                modelFirebaseHelper.sqlite.updateModel(modelToSave, true);
+                if (model == null) {
+                    modelFirebaseHelper.sqlite.addModel(modelToSave, true);
+                } else {
+                    modelFirebaseHelper.sqlite.updateModel(modelToSave, true);
+                }
+                firebaseModelsRef.child(modelToSave.getId()).setValue(modelToSave);
+                loadModels();
+                dialog.dismiss();
             }
-            firebaseModelsRef.child(modelToSave.getId()).setValue(modelToSave);
-            loadModels();
-            dialog.dismiss();
         });
         dialog.show();
     }
@@ -532,34 +535,37 @@ public class FragmentSetting extends Fragment implements EndpointAdapter.OnEndpo
         }
 
         dialogView.findViewById(R.id.buttonCancelPrompt).setOnClickListener(v -> dialog.dismiss());
-        saveButton.setOnClickListener(v -> {
-            String promptName = name.getText().toString().trim();
-            if (promptName.isEmpty()) {
-                Toast.makeText(getContext(), "Tên prompt không được để trống", Toast.LENGTH_SHORT).show();
-                return;
-            }
+        saveButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String promptName = name.getText().toString().trim();
+                if (promptName.isEmpty()) {
+                    Toast.makeText(getContext(), "Tên prompt không được để trống", Toast.LENGTH_SHORT).show();
+                    return;
+                }
 
-            int selectedTypeId = typeGroup.getCheckedRadioButtonId();
-            int type = (selectedTypeId == R.id.radioButtonSystem) ? 1 : 2;
+                int selectedTypeId = typeGroup.getCheckedRadioButtonId();
+                int type = (selectedTypeId == R.id.radioButtonSystem) ? 1 : 2;
 
-            Prompt promptToSave = (prompt == null) ? new Prompt() : prompt;
-            if (prompt == null) {
-                promptToSave.setId(generateId("prompt"));
-                promptToSave.setDefault(false);
-            }
-            promptToSave.setName(promptName);
-            promptToSave.setContent(content.getText().toString().trim());
-            promptToSave.setType(type);
+                Prompt promptToSave = (prompt == null) ? new Prompt() : prompt;
+                if (prompt == null) {
+                    promptToSave.setId(generateId("prompt"));
+                    promptToSave.setDefault(false);
+                }
+                promptToSave.setName(promptName);
+                promptToSave.setContent(content.getText().toString().trim());
+                promptToSave.setType(type);
 
-            if (prompt == null) {
-                promptFirebaseHelper.sqlite.addPrompt(promptToSave, true);
+                if (prompt == null) {
+                    promptFirebaseHelper.sqlite.addPrompt(promptToSave, true);
+                }
+                else {
+                    promptFirebaseHelper.sqlite.updatePrompt(promptToSave, true);
+                }
+                firebasePromptsRef.child(promptToSave.getId()).setValue(promptToSave);
+                loadPrompts();
+                dialog.dismiss();
             }
-            else {
-                promptFirebaseHelper.sqlite.updatePrompt(promptToSave, true);
-            }
-            firebasePromptsRef.child(promptToSave.getId()).setValue(promptToSave);
-            loadPrompts();
-            dialog.dismiss();
         });
         dialog.show();
     }
