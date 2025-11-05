@@ -1,5 +1,7 @@
 package com.nhom4.aichatbot.Firebase;
 
+import android.content.Context;
+
 import androidx.annotation.NonNull;
 
 import com.google.firebase.auth.FirebaseAuth;
@@ -13,36 +15,38 @@ import com.nhom4.aichatbot.Models.Model;
 
 public class ModelFirebaseHelper {
     private final DatabaseReference firebaseModelsRef;
+    public final ModelDbHelper sqlite;
 
-    public ModelFirebaseHelper() {
+    public ModelFirebaseHelper(Context context) {
+        this.sqlite = new ModelDbHelper(context);
         String currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         DatabaseReference userRef = FirebaseDatabase.getInstance().getReference().child("users").child(currentUserId);
         this.firebaseModelsRef = userRef.child("models");
     }
 
-    public void syncUserModels(ModelDbHelper modelDbHelper, SyncCallback callback) {
+    public void syncUserModels(SyncCallback callback) {
         firebaseModelsRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                int count = 0;
+                int activeCount = 0;
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                     Model model = snapshot.getValue(Model.class);
                     if (model != null) {
-                        String Id = snapshot.getKey();
-                        model.setId(Id);
-                        if (modelDbHelper.getModelById(Id) == null) {
-                            modelDbHelper.addModel(model, true);
+                        String id = snapshot.getKey();
+                        model.setId(id);
+
+                        Model existingModel = sqlite.getModelById(id);
+                        if (existingModel == null) {
+                            sqlite.addModel(model, true);
                         } else {
-                            if (modelDbHelper.getModelById(Id).isActive()) {
-                                model.setActive(true);
-                                count++;
-                                if (count > 1) {
-                                    model.setActive(false);
-                                }
+                            // Handle active model logic
+                            if (existingModel.isActive()) {
+                                activeCount++;
+                                model.setActive(activeCount <= 1); // Only first active model remains active
                             } else {
                                 model.setActive(false);
                             }
-                            modelDbHelper.updateModel(model, true);
+                            sqlite.updateModel(model, true);
                             firebaseModelsRef.child(model.getId()).setValue(model);
                         }
                     }
@@ -55,10 +59,6 @@ public class ModelFirebaseHelper {
                 callback.onError(databaseError.getMessage());
             }
         });
-    }
-
-    public DatabaseReference getModelsRef() {
-        return firebaseModelsRef;
     }
 
     public void addModel(Model model) {

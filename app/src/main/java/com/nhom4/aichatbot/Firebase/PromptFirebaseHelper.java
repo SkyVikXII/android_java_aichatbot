@@ -1,5 +1,7 @@
 package com.nhom4.aichatbot.Firebase;
 
+import android.content.Context;
+
 import androidx.annotation.NonNull;
 
 import com.google.firebase.auth.FirebaseAuth;
@@ -13,31 +15,31 @@ import com.nhom4.aichatbot.Models.Prompt;
 
 public class PromptFirebaseHelper {
     private final DatabaseReference firebasePromptsRef;
+    public final PromptDbHelper sqlite;
 
-    public PromptFirebaseHelper() {
+    public PromptFirebaseHelper(Context context) {
+        this.sqlite = new PromptDbHelper(context);
         String currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         DatabaseReference userRef = FirebaseDatabase.getInstance().getReference().child("users").child(currentUserId);
         this.firebasePromptsRef = userRef.child("prompts");
     }
 
-    public void syncUserPrompts(PromptDbHelper promptDbHelper, SyncCallback callback) {
+    public void syncUserPrompts(SyncCallback callback) {
         firebasePromptsRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                     Prompt prompt = snapshot.getValue(Prompt.class);
                     if (prompt != null) {
-                        String Id = snapshot.getKey();
-                        prompt.setId(Id);
-                        if (promptDbHelper.getPromptById(Id) == null) {
-                            promptDbHelper.addPrompt(prompt, true);
+                        String id = snapshot.getKey();
+                        prompt.setId(id);
+
+                        Prompt existingPrompt = sqlite.getPromptById(id);
+                        if (existingPrompt == null) {
+                            sqlite.addPrompt(prompt, true);
                         } else {
-                            if (promptDbHelper.getPromptById(Id).isActive()) {
-                                prompt.setActive(true);
-                            } else {
-                                prompt.setActive(false);
-                            }
-                            promptDbHelper.updatePrompt(prompt, true);
+                            prompt.setActive(existingPrompt.isActive());
+                            sqlite.updatePrompt(prompt, true);
                             firebasePromptsRef.child(prompt.getId()).setValue(prompt);
                         }
                     }
@@ -50,10 +52,6 @@ public class PromptFirebaseHelper {
                 callback.onError(databaseError.getMessage());
             }
         });
-    }
-
-    public DatabaseReference getPromptsRef() {
-        return firebasePromptsRef;
     }
 
     public void addPrompt(Prompt prompt) {
