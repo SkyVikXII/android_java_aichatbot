@@ -1,5 +1,7 @@
 package com.nhom4.aichatbot.Firebase;
 
+import android.content.Context;
+
 import androidx.annotation.NonNull;
 
 import com.google.firebase.auth.FirebaseAuth;
@@ -16,19 +18,17 @@ import java.util.ArrayList;
 public class EndpointFirebaseHelper {
     private final DatabaseReference firebaseEndpointsRef;
     private final DatabaseReference firebaseSystemEndpointsRef;
-    int activeEndpointCount=0;
+    public final EndpointDbHelper sqlite;
 
-    public EndpointFirebaseHelper() {
+    public EndpointFirebaseHelper(Context context) {
+        this.sqlite = new EndpointDbHelper(context);
         String currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         DatabaseReference userRef = FirebaseDatabase.getInstance().getReference().child("users").child(currentUserId);
         this.firebaseEndpointsRef = userRef.child("endpoints");
         this.firebaseSystemEndpointsRef = FirebaseDatabase.getInstance().getReference().child("system").child("endpoint");
     }
-    public void getnumberactiveEndpoint(EndpointDbHelper endpointDbHelper){
-        ArrayList<Endpoint> activeEndpoints = new ArrayList<Endpoint>(endpointDbHelper.getActiveEndpoints());
-        activeEndpointCount = activeEndpoints.size();
-    }
-    public void syncSystemEndpoints(EndpointDbHelper endpointDbHelper, SyncCallback callback) {
+
+    public void syncSystemEndpoints(SyncCallback callback) {
         firebaseSystemEndpointsRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -37,15 +37,13 @@ public class EndpointFirebaseHelper {
                     if (endpoint != null) {
                         String systemId = "system_" + snapshot.getKey();
                         endpoint.setId(systemId);
-                        if (endpointDbHelper.getEndpointById(systemId) == null) {
-                            endpointDbHelper.addEndpoint(endpoint, true);
+
+                        Endpoint existingEndpoint = sqlite.getEndpointById(systemId);
+                        if (existingEndpoint == null) {
+                            sqlite.addEndpoint(endpoint, true);
                         } else {
-                            if (endpointDbHelper.getEndpointById(systemId).isActive()) {
-                                endpoint.setActive(true);
-                            } else {
-                                endpoint.setActive(false);
-                            }
-                            endpointDbHelper.updateEndpoint(endpoint, true);
+                            endpoint.setActive(existingEndpoint.isActive());
+                            sqlite.updateEndpoint(endpoint, true);
                         }
                     }
                 }
@@ -59,24 +57,22 @@ public class EndpointFirebaseHelper {
         });
     }
 
-    public void syncUserEndpoints(EndpointDbHelper endpointDbHelper, SyncCallback callback) {
+    public void syncUserEndpoints(SyncCallback callback) {
         firebaseEndpointsRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                     Endpoint endpoint = snapshot.getValue(Endpoint.class);
                     if (endpoint != null) {
-                        String Id = snapshot.getKey();
-                        endpoint.setId(Id);
-                        if (endpointDbHelper.getEndpointById(Id) == null) {
-                            endpointDbHelper.addEndpoint(endpoint, true);
+                        String id = snapshot.getKey();
+                        endpoint.setId(id);
+
+                        Endpoint existingEndpoint = sqlite.getEndpointById(id);
+                        if (existingEndpoint == null) {
+                            sqlite.addEndpoint(endpoint, true);
                         } else {
-                            if (endpointDbHelper.getEndpointById(Id).isActive()) {
-                                endpoint.setActive(true);
-                            } else {
-                                endpoint.setActive(false);
-                            }
-                            endpointDbHelper.updateEndpoint(endpoint, true);
+                            endpoint.setActive(existingEndpoint.isActive());
+                            sqlite.updateEndpoint(endpoint, true);
                             firebaseEndpointsRef.child(endpoint.getId()).setValue(endpoint);
                         }
                     }
@@ -89,14 +85,6 @@ public class EndpointFirebaseHelper {
                 callback.onError(databaseError.getMessage());
             }
         });
-    }
-
-    public DatabaseReference getEndpointsRef() {
-        return firebaseEndpointsRef;
-    }
-
-    public DatabaseReference getSystemEndpointsRef() {
-        return firebaseSystemEndpointsRef;
     }
 
     public void addEndpoint(Endpoint endpoint) {

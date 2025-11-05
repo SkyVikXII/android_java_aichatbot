@@ -50,14 +50,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void intsdb() {
-        endpointDbHelper = new EndpointDbHelper(getBaseContext());
-        endpointFirebaseHelper = new EndpointFirebaseHelper();
-        modelDbHelper = new ModelDbHelper(getBaseContext());
-        modelFirebaseHelper = new ModelFirebaseHelper();
-        promptFirebaseHelper = new PromptFirebaseHelper();
-        promptDbHelper = new PromptDbHelper(getBaseContext());
-        characterDbHelper = new CharacterDbHelper(getBaseContext());
-        characterFirebaseHelper = new CharacterFirebaseHelper();
+        endpointFirebaseHelper = new EndpointFirebaseHelper(getBaseContext());
+        modelFirebaseHelper = new ModelFirebaseHelper(getBaseContext());
+        promptFirebaseHelper = new PromptFirebaseHelper(getBaseContext());
+        characterFirebaseHelper = new CharacterFirebaseHelper(getBaseContext());
         syncAllData();
     }
 
@@ -80,7 +76,7 @@ public class MainActivity extends AppCompatActivity {
         });
     }
     private void syncAllData(){
-        modelFirebaseHelper.syncUserModels(modelDbHelper, new ModelFirebaseHelper.SyncCallback() {
+        modelFirebaseHelper.syncUserModels( new ModelFirebaseHelper.SyncCallback() {
             @Override
             public void onSuccess() {
             }
@@ -90,7 +86,7 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(getBaseContext(), "Không thể tải du lieu tu server", Toast.LENGTH_SHORT).show();
             }
         });
-        endpointFirebaseHelper.syncSystemEndpoints(endpointDbHelper, new EndpointFirebaseHelper.SyncCallback() {
+        endpointFirebaseHelper.syncSystemEndpoints( new EndpointFirebaseHelper.SyncCallback() {
             @Override
             public void onSuccess() {
             }
@@ -100,7 +96,7 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(getBaseContext(), "Không thể tải du lieu tu server", Toast.LENGTH_SHORT).show();
             }
         });
-        endpointFirebaseHelper.syncUserEndpoints(endpointDbHelper, new EndpointFirebaseHelper.SyncCallback() {
+        endpointFirebaseHelper.syncUserEndpoints( new EndpointFirebaseHelper.SyncCallback() {
             @Override
             public void onSuccess() {
             }
@@ -110,7 +106,7 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(getBaseContext(), "Không thể tải du lieu tu server", Toast.LENGTH_SHORT).show();
             }
         });
-        promptFirebaseHelper.syncUserPrompts(promptDbHelper, new PromptFirebaseHelper.SyncCallback() {
+        promptFirebaseHelper.syncUserPrompts( new PromptFirebaseHelper.SyncCallback() {
             @Override
             public void onSuccess() {
             }
@@ -120,7 +116,7 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(getBaseContext(), "Không thể tải du lieu tu server", Toast.LENGTH_SHORT).show();
             }
         });
-        characterFirebaseHelper.syncUserCharacters(characterDbHelper, new CharacterFirebaseHelper.SyncCallback() {
+        characterFirebaseHelper.syncUserCharacters( new CharacterFirebaseHelper.SyncCallback() {
             @Override
             public void onSuccess() {
 

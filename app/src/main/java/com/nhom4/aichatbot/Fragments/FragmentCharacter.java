@@ -15,6 +15,9 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -23,6 +26,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.nhom4.aichatbot.Adapter.CharacterAdapter;
 import com.nhom4.aichatbot.Database.CharacterDbHelper;
+import com.nhom4.aichatbot.Firebase.CharacterFirebaseHelper;
 import com.nhom4.aichatbot.Models.Character;
 import com.nhom4.aichatbot.R;
 import java.text.SimpleDateFormat;
@@ -34,7 +38,7 @@ public class FragmentCharacter extends Fragment implements CharacterAdapter.OnCh
 
     private RecyclerView recyclerView;
     private CharacterAdapter adapter;
-    private CharacterDbHelper dbHelper;
+    private CharacterFirebaseHelper characterFirebaseHelper;
     private DatabaseReference firebaseRef;
     private boolean isOnline = false;
 
@@ -44,7 +48,7 @@ public class FragmentCharacter extends Fragment implements CharacterAdapter.OnCh
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        dbHelper = new CharacterDbHelper(getContext());
+        characterFirebaseHelper = new CharacterFirebaseHelper(getContext());
         isOnline = isNetworkAvailable();
         if (isOnline) {
             setupFirebase();
@@ -65,10 +69,10 @@ public class FragmentCharacter extends Fragment implements CharacterAdapter.OnCh
                 for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
                     Character character = snapshot.getValue(Character.class);
                     if (character != null) {
-                        if (dbHelper.getCharacterById(character.getId()) == null) {
-                            dbHelper.addCharacter(character, true);
+                        if (characterFirebaseHelper.sqlite.getCharacterById(character.getId()) == null) {
+                            characterFirebaseHelper.sqlite.addCharacter(character, true);
                         } else {
-                            dbHelper.updateCharacter(character, true);
+                            characterFirebaseHelper.sqlite.updateCharacter(character, true);
                         }
                     }
                 }
@@ -83,16 +87,16 @@ public class FragmentCharacter extends Fragment implements CharacterAdapter.OnCh
     }
 
     private void syncUnsyncedData() {
-        List<Character> unsyncedCharacters = dbHelper.getUnsyncedCharacters();
+        List<Character> unsyncedCharacters = characterFirebaseHelper.sqlite.getUnsyncedCharacters();
         for (Character character : unsyncedCharacters) {
             firebaseRef.child(character.getId()).setValue(character)
-                    .addOnSuccessListener(new com.google.android.gms.tasks.OnSuccessListener<Void>() {
+                    .addOnSuccessListener(new OnSuccessListener<Void>() {
                         @Override
                         public void onSuccess(Void aVoid) {
-                            dbHelper.markAsSynced(character.getId());
+                            characterFirebaseHelper.sqlite.markAsSynced(character.getId());
                         }
                     })
-                    .addOnFailureListener(new com.google.android.gms.tasks.OnFailureListener() {
+                    .addOnFailureListener(new OnFailureListener() {
                         @Override
                         public void onFailure(@NonNull Exception e) {
                             Toast.makeText(getContext(), "Đồng bộ hóa thất bại", Toast.LENGTH_SHORT).show();
@@ -113,7 +117,7 @@ public class FragmentCharacter extends Fragment implements CharacterAdapter.OnCh
     }
 
     private void loadDataFromSqlite() {
-        List<Character> characters = dbHelper.getAllCharacters();
+        List<Character> characters = characterFirebaseHelper.sqlite.getAllCharacters();
         if (adapter != null) {
             adapter.updateData(characters);
         }
@@ -123,7 +127,7 @@ public class FragmentCharacter extends Fragment implements CharacterAdapter.OnCh
         recyclerView = view.findViewById(R.id.recyclerViewCharacters);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
-        adapter = new CharacterAdapter(getContext(), dbHelper.getAllCharacters(), this);
+        adapter = new CharacterAdapter(getContext(), characterFirebaseHelper.sqlite.getAllCharacters(), this);
         recyclerView.setAdapter(adapter);
     }
 
@@ -200,13 +204,13 @@ public class FragmentCharacter extends Fragment implements CharacterAdapter.OnCh
         newCharacter.setDateupdate(currentDate);
 
         isOnline = isNetworkAvailable();
-        dbHelper.addCharacter(newCharacter, isOnline);
+        characterFirebaseHelper.sqlite.addCharacter(newCharacter, isOnline);
 
         Toast.makeText(getContext(), "Lưu nhân vật thành công", Toast.LENGTH_SHORT).show();
 
         if (isOnline && firebaseRef != null) {
             firebaseRef.child(newCharacter.getId()).setValue(newCharacter)
-                    .addOnSuccessListener(aVoid -> dbHelper.markAsSynced(newCharacter.getId()));
+                    .addOnSuccessListener(aVoid -> characterFirebaseHelper.sqlite.markAsSynced(newCharacter.getId()));
         }
         loadDataFromSqlite();
     }
@@ -221,7 +225,7 @@ public class FragmentCharacter extends Fragment implements CharacterAdapter.OnCh
     }
 
     private void updateCharacter(String characterId, String name, String description) {
-        Character existingCharacter = dbHelper.getCharacterById(characterId);
+        Character existingCharacter = characterFirebaseHelper.sqlite.getCharacterById(characterId);
 
         if (existingCharacter != null) {
             existingCharacter.setName(name);
@@ -230,13 +234,13 @@ public class FragmentCharacter extends Fragment implements CharacterAdapter.OnCh
             existingCharacter.setDateupdate(currentDate);
 
             isOnline = isNetworkAvailable();
-            dbHelper.updateCharacter(existingCharacter, isOnline);
+            characterFirebaseHelper.sqlite.updateCharacter(existingCharacter, isOnline);
 
             Toast.makeText(getContext(), "Cập nhật nhân vật thành công", Toast.LENGTH_SHORT).show();
 
             if (isOnline && firebaseRef != null) {
                 firebaseRef.child(characterId).setValue(existingCharacter)
-                        .addOnSuccessListener(aVoid -> dbHelper.markAsSynced(characterId));
+                        .addOnSuccessListener(aVoid -> characterFirebaseHelper.sqlite.markAsSynced(characterId));
             }
             loadDataFromSqlite();
         }
@@ -248,7 +252,7 @@ public class FragmentCharacter extends Fragment implements CharacterAdapter.OnCh
             return;
         }
 
-        dbHelper.deleteCharacter(character.getId());
+        characterFirebaseHelper.sqlite.deleteCharacter(character.getId());
 
         if (isOnline && firebaseRef != null) {
             firebaseRef.child(character.getId()).removeValue();

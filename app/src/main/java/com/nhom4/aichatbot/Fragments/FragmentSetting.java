@@ -45,9 +45,6 @@ public class FragmentSetting extends Fragment implements EndpointAdapter.OnEndpo
     private EndpointAdapter endpointAdapter;
     private ModelAdapter modelAdapter;
     private PromptAdapter promptAdapter;
-    private EndpointDbHelper endpointDbHelper;
-    private ModelDbHelper modelDbHelper;
-    private PromptDbHelper promptDbHelper;
 
     private ModelFirebaseHelper modelFirebaseHelper;
     private EndpointFirebaseHelper endpointFirebaseHelper;
@@ -59,13 +56,9 @@ public class FragmentSetting extends Fragment implements EndpointAdapter.OnEndpo
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        endpointDbHelper = new EndpointDbHelper(getContext());
-        modelDbHelper = new ModelDbHelper(getContext());
-        promptDbHelper = new PromptDbHelper(getContext());
-
-        modelFirebaseHelper = new ModelFirebaseHelper();
-        endpointFirebaseHelper = new EndpointFirebaseHelper();
-        promptFirebaseHelper = new PromptFirebaseHelper();
+        endpointFirebaseHelper = new EndpointFirebaseHelper(getContext());
+        modelFirebaseHelper = new ModelFirebaseHelper(getContext());
+        promptFirebaseHelper = new PromptFirebaseHelper(getContext());
 
         String currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         DatabaseReference userRef = FirebaseDatabase.getInstance().getReference().child("users").child(currentUserId);
@@ -93,7 +86,7 @@ public class FragmentSetting extends Fragment implements EndpointAdapter.OnEndpo
         //syncFirebasePromptdata();
     }
     private void syncAllData(){
-        modelFirebaseHelper.syncUserModels(modelDbHelper, new ModelFirebaseHelper.SyncCallback() {
+        modelFirebaseHelper.syncUserModels( new ModelFirebaseHelper.SyncCallback() {
             @Override
             public void onSuccess() {
                 loadModels();
@@ -104,7 +97,7 @@ public class FragmentSetting extends Fragment implements EndpointAdapter.OnEndpo
                 Toast.makeText(getContext(), "Không thể tải du lieu tu server", Toast.LENGTH_SHORT).show();
             }
         });
-        endpointFirebaseHelper.syncSystemEndpoints(endpointDbHelper, new EndpointFirebaseHelper.SyncCallback() {
+        endpointFirebaseHelper.syncSystemEndpoints( new EndpointFirebaseHelper.SyncCallback() {
             @Override
             public void onSuccess() {
                 loadEndpoints();
@@ -115,7 +108,7 @@ public class FragmentSetting extends Fragment implements EndpointAdapter.OnEndpo
                 Toast.makeText(getContext(), "Không thể tải du lieu tu server", Toast.LENGTH_SHORT).show();
             }
         });
-        endpointFirebaseHelper.syncUserEndpoints(endpointDbHelper, new EndpointFirebaseHelper.SyncCallback() {
+        endpointFirebaseHelper.syncUserEndpoints( new EndpointFirebaseHelper.SyncCallback() {
             @Override
             public void onSuccess() {
                 loadEndpoints();
@@ -126,7 +119,7 @@ public class FragmentSetting extends Fragment implements EndpointAdapter.OnEndpo
                 Toast.makeText(getContext(), "Không thể tải du lieu tu server", Toast.LENGTH_SHORT).show();
             }
         });
-        promptFirebaseHelper.syncUserPrompts(promptDbHelper, new PromptFirebaseHelper.SyncCallback() {
+        promptFirebaseHelper.syncUserPrompts( new PromptFirebaseHelper.SyncCallback() {
             @Override
             public void onSuccess() {
                 loadPrompts();
@@ -148,15 +141,15 @@ public class FragmentSetting extends Fragment implements EndpointAdapter.OnEndpo
                     if (endpoint != null) {
                         String systemId = "system_"+snapshot.getKey();
                         endpoint.setId(systemId);
-                        if (endpointDbHelper.getEndpointById(systemId) == null) {
-                            endpointDbHelper.addEndpoint(endpoint, true);
+                        if (endpointFirebaseHelper.sqlite.getEndpointById(systemId) == null) {
+                            endpointFirebaseHelper.sqlite.addEndpoint(endpoint, true);
                         } else {
-                            if(endpointDbHelper.getEndpointById(systemId).isActive()){
+                            if(endpointFirebaseHelper.sqlite.getEndpointById(systemId).isActive()){
                                 endpoint.setActive(true);
                             }else{
                                 endpoint.setActive(false);
                             }
-                            endpointDbHelper.updateEndpoint(endpoint, true);
+                            endpointFirebaseHelper.sqlite.updateEndpoint(endpoint, true);
                         }
                     }
                 }
@@ -178,10 +171,10 @@ public class FragmentSetting extends Fragment implements EndpointAdapter.OnEndpo
                     if (endpoint != null) {
                         String Id = snapshot.getKey();
                         endpoint.setId(Id);
-                        if (endpointDbHelper.getEndpointById(Id) == null) {
-                            endpointDbHelper.addEndpoint(endpoint, true);
+                        if (endpointFirebaseHelper.sqlite.getEndpointById(Id) == null) {
+                            endpointFirebaseHelper.sqlite.addEndpoint(endpoint, true);
                         } else {
-                            if(endpointDbHelper.getEndpointById(Id).isActive()){
+                            if(endpointFirebaseHelper.sqlite.getEndpointById(Id).isActive()){
                                 activeEndpoint++;
                                 if(activeEndpoint>1){
                                     endpoint.setActive(false);
@@ -191,7 +184,7 @@ public class FragmentSetting extends Fragment implements EndpointAdapter.OnEndpo
                             }else{
                                 endpoint.setActive(false);
                             }
-                            endpointDbHelper.updateEndpoint(endpoint, true);
+                            endpointFirebaseHelper.sqlite.updateEndpoint(endpoint, true);
                             firebaseEndpointsRef.child(endpoint.getId()).setValue(endpoint);
                         }
                     }
@@ -215,10 +208,10 @@ public class FragmentSetting extends Fragment implements EndpointAdapter.OnEndpo
                     if (model != null) {
                         String Id = snapshot.getKey();
                         model.setId(Id);
-                        if (modelDbHelper.getModelById(Id) == null) {
-                            modelDbHelper.addModel(model, true);
+                        if (modelFirebaseHelper.sqlite.getModelById(Id) == null) {
+                            modelFirebaseHelper.sqlite.addModel(model, true);
                         } else {
-                            if(modelDbHelper.getModelById(Id).isActive()){
+                            if(modelFirebaseHelper.sqlite.getModelById(Id).isActive()){
                                 model.setActive(true);
                                 count++;
                                 if(count>1){
@@ -227,7 +220,7 @@ public class FragmentSetting extends Fragment implements EndpointAdapter.OnEndpo
                             }else{
                                 model.setActive(false);
                             }
-                            modelDbHelper.updateModel(model, true);
+                            modelFirebaseHelper.sqlite.updateModel(model, true);
                             firebaseModelsRef.child(model.getId()).setValue(model);
                         }
                     }
@@ -250,15 +243,15 @@ public class FragmentSetting extends Fragment implements EndpointAdapter.OnEndpo
                     if (prompt != null) {
                         String Id = snapshot.getKey();
                         prompt.setId(Id);
-                        if (promptDbHelper.getPromptById(Id) == null) {
-                            promptDbHelper.addPrompt(prompt, true);
+                        if (promptFirebaseHelper.sqlite.getPromptById(Id) == null) {
+                            promptFirebaseHelper.sqlite.addPrompt(prompt, true);
                         } else {
-                            if(promptDbHelper.getPromptById(Id).isActive()){
+                            if(promptFirebaseHelper.sqlite.getPromptById(Id).isActive()){
                                 prompt.setActive(true);
                             }else{
                                 prompt.setActive(false);
                             }
-                            promptDbHelper.updatePrompt(prompt, true);
+                            promptFirebaseHelper.sqlite.updatePrompt(prompt, true);
                             firebasePromptsRef.child(prompt.getId()).setValue(prompt);
                         }
                     }
@@ -321,7 +314,7 @@ public class FragmentSetting extends Fragment implements EndpointAdapter.OnEndpo
 
     // Endpoint Management
     private void loadEndpoints() {
-        List<Endpoint> endpoints = endpointDbHelper.getAllEndpoints();
+        List<Endpoint> endpoints = endpointFirebaseHelper.sqlite.getAllEndpoints();
         endpointAdapter = new EndpointAdapter(getContext(), endpoints, this);
         recyclerViewEndpoints.setAdapter(endpointAdapter);
     }
@@ -367,13 +360,13 @@ public class FragmentSetting extends Fragment implements EndpointAdapter.OnEndpo
             if (endpoint == null) {
                 Endpoint newEndpoint = new Endpoint(endpointName, endpointUrl, endpointApiKey);
                 newEndpoint.setId(generateId("endpoint"));
-                endpointDbHelper.addEndpoint(newEndpoint, true);
+                endpointFirebaseHelper.sqlite.addEndpoint(newEndpoint, true);
                 firebaseEndpointsRef.child(newEndpoint.getId()).setValue(newEndpoint);
             } else {
                 endpoint.setName(endpointName);
                 endpoint.setEndpoint_url(endpointUrl);
                 endpoint.setAPI_KEY(endpointApiKey);
-                endpointDbHelper.updateEndpoint(endpoint, true);
+                endpointFirebaseHelper.sqlite.updateEndpoint(endpoint, true);
                 firebaseEndpointsRef.child(endpoint.getId()).setValue(endpoint);
             }
             loadEndpoints();
@@ -394,14 +387,14 @@ public class FragmentSetting extends Fragment implements EndpointAdapter.OnEndpo
             Toast.makeText(getContext(), "Không thể xóa các mặc định của hệ thống.", Toast.LENGTH_SHORT).show();
             return;
         }
-        endpointDbHelper.deleteEndpoint(endpoint.getId());
+        endpointFirebaseHelper.sqlite.deleteEndpoint(endpoint.getId());
         firebaseEndpointsRef.child(endpoint.getId()).removeValue();
         loadEndpoints();
     }
 
     // Model Management
     private void loadModels() {
-        List<Model> models = modelDbHelper.getAllModels();
+        List<Model> models = modelFirebaseHelper.sqlite.getAllModels();
         modelAdapter = new ModelAdapter(getContext(), models, this);
         recyclerViewModels.setAdapter(modelAdapter);
     }
@@ -476,9 +469,9 @@ public class FragmentSetting extends Fragment implements EndpointAdapter.OnEndpo
             modelToSave.setPresence_penalty(presPenalty.getText().toString().trim());
 
             if (model == null) {
-                modelDbHelper.addModel(modelToSave, true);
+                modelFirebaseHelper.sqlite.addModel(modelToSave, true);
             } else {
-                modelDbHelper.updateModel(modelToSave, true);
+                modelFirebaseHelper.sqlite.updateModel(modelToSave, true);
             }
             firebaseModelsRef.child(modelToSave.getId()).setValue(modelToSave);
             loadModels();
@@ -496,14 +489,14 @@ public class FragmentSetting extends Fragment implements EndpointAdapter.OnEndpo
             Toast.makeText(getContext(), "Không thể xóa các model mặc định.", Toast.LENGTH_SHORT).show();
             return;
         }
-        modelDbHelper.deleteModel(model.getId());
+        modelFirebaseHelper.sqlite.deleteModel(model.getId());
         firebaseModelsRef.child(model.getId()).removeValue();
         loadModels();
     }
 
     // Prompt Management
     private void loadPrompts() {
-        List<Prompt> prompts = promptDbHelper.getAllPrompts();
+        List<Prompt> prompts = promptFirebaseHelper.sqlite.getAllPrompts();
         promptAdapter = new PromptAdapter(getContext(), prompts, this);
         recyclerViewPrompts.setAdapter(promptAdapter);
     }
@@ -559,10 +552,10 @@ public class FragmentSetting extends Fragment implements EndpointAdapter.OnEndpo
             promptToSave.setType(type);
 
             if (prompt == null) {
-                promptDbHelper.addPrompt(promptToSave, true);
+                promptFirebaseHelper.sqlite.addPrompt(promptToSave, true);
             }
             else {
-                promptDbHelper.updatePrompt(promptToSave, true);
+                promptFirebaseHelper.sqlite.updatePrompt(promptToSave, true);
             }
             firebasePromptsRef.child(promptToSave.getId()).setValue(promptToSave);
             loadPrompts();
@@ -655,7 +648,7 @@ public class FragmentSetting extends Fragment implements EndpointAdapter.OnEndpo
             Toast.makeText(getContext(), "Không thể xóa các prompt mặc định.", Toast.LENGTH_SHORT).show();
             return;
         }
-        promptDbHelper.deletePrompt(prompt.getId());
+        promptFirebaseHelper.sqlite.deletePrompt(prompt.getId());
         firebasePromptsRef.child(prompt.getId()).removeValue();
         loadPrompts();
     }
@@ -663,7 +656,7 @@ public class FragmentSetting extends Fragment implements EndpointAdapter.OnEndpo
     @Override
     public void onActivateClick(Endpoint endpoint, boolean isActive) {
         if (isActive) {
-            endpointDbHelper.setEndpointActive(endpoint.getId());
+            endpointFirebaseHelper.sqlite.setEndpointActive(endpoint.getId());
             loadEndpoints(); // Reload to update all switches
         }
     }
@@ -671,14 +664,14 @@ public class FragmentSetting extends Fragment implements EndpointAdapter.OnEndpo
     @Override
     public void onActivateClick(Model model, boolean isActive) {
         if (isActive) {
-            modelDbHelper.setModelActive(model.getId());
+            modelFirebaseHelper.sqlite.setModelActive(model.getId());
             loadModels();
         }
     }
 
     @Override
     public void onActivateClick(Prompt prompt, boolean isActive) {
-        promptDbHelper.setPromptActive(prompt.getId(), isActive);
+        promptFirebaseHelper.sqlite.setPromptActive(prompt.getId(), isActive);
         loadPrompts();
     }
 
