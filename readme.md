@@ -4,10 +4,9 @@ To set up this project, please follow these steps:
 
 1.  **Clone this project:**
     ```bash
-    git clone <repository_url>
+    git clone https://github.com/SkyVikXII/android_java_aichatbot.git
     ```
-    (Replace `<repository_url>` with the actual URL of your repository.)
-
+	
 2.  **Add Firebase Database to the project:**
     You can do this via Android Studio or by manually adding your `google-services.json` file to `./app/google-services.json`.
 
@@ -27,4 +26,24 @@ To set up this project, please follow these steps:
         ]
       }
     }
+    ```
+4.  **Project Firebase structure:**
+	```json
+	{
+	  "system": {
+		"endpoint": [
+		  {},
+		  {},
+		  {}
+		]
+	  },
+	  "users": {
+		"userid1": {
+		},
+		"userid2": {
+		},
+		"userid3": {
+		},
+	  }
+	}
     ```
