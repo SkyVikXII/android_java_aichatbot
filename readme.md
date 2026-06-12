@@ -47,3 +47,7 @@ To set up this project, please follow these steps:
 	  }
 	}
     ```
+# Project Detail
+1. Support save offline sync when have internet
+2. Allow user freely choice what endpoint to use (not support for all type of endpoint or service provider for now, test with google and open router)
+3. User can edit system prompt or add more prompt
